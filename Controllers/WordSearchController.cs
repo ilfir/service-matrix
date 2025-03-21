@@ -23,8 +23,12 @@ public class WordSearchController : ControllerBase
     {
         var rng = new Random();
         var result = Enumerable.Range(1, 5).Select(index => Summaries[rng.Next(Summaries.Length)]).ToArray();
-        var req = string.Join(", ", request.lettersMatrix);
-        result[result.Length - 1] = req;
+
+        // Join the lettersMatrix into a single string
+        var joinedLettersMatrix = string.Join(", ", request.lettersMatrix.SelectMany(row => row));
+        // Include the joined lettersMatrix in the result
+        result[result.Length - 1] = joinedLettersMatrix;
+        
         return result;
     }
  
