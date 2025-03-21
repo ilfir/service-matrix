@@ -68,7 +68,7 @@ Service Matrix is an ASP.NET Core web API project that provides a word search fu
     docker run -p 8080:80 service-matrix
     ```
 
-3. Open your browser and navigate to `http://localhost:8080/swagger` to view the Swagger UI.
+3. Open your browser and navigate to `http://localhost:8080` to view the Swagger UI.
 
 ## API Endpoints
 
