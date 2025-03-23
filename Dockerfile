@@ -16,4 +16,5 @@ RUN dotnet publish "service-matrix.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY resources/definitions.txt ./resources/definitions.txt
 ENTRYPOINT ["dotnet", "service-matrix.dll"]

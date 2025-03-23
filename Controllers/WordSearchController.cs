@@ -19,17 +19,21 @@ public class WordSearchController : ControllerBase
     }
 
     [HttpPost(Name = "GetWords")]
-    public IEnumerable<string> Get(SearchRequest request)
+    public async Task<List<string>> Get(SearchRequest request)
     {
-        var rng = new Random();
-        var result = Enumerable.Range(1, 5).Select(index => Summaries[rng.Next(Summaries.Length)]).ToArray();
-
+        // var rng = new Random();
+        // var result = Enumerable.Range(1, 5).Select(index => Summaries[rng.Next(Summaries.Length)]).ToArray();
         // Join the lettersMatrix into a single string
         var joinedLettersMatrix = string.Join(", ", request.lettersMatrix.SelectMany(row => row));
         // Include the joined lettersMatrix in the result
-        result[result.Length - 1] = joinedLettersMatrix;
-        
-        return result;
+
+        var handler = new WordSearchCommandHandler();
+        var command = new WordSearchCommand(request.MaxLength, request.MinLength, request.MaxWords, request.lettersMatrix);
+        var res = await handler.Handle(command, CancellationToken.None);
+
+        var response = new List<string> { joinedLettersMatrix, res };
+
+        return response;
     }
  
 }
