@@ -1,13 +1,9 @@
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using service_matrix.Helpers;
 
 public class WordSearchCommandHandler
 {
-    public Task<string> Handle(WordSearchCommand command, CancellationToken cancellationToken)
+    public Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -37,8 +33,8 @@ public class WordSearchCommandHandler
                 lettersMatrix2D[i, j] = command.lettersMatrix[i][j];
             }
         }
-        
-        var foundWordsString = new StringBuilder("Found words: ");
+
+        var foundWordsList = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
         foreach (var definitionWord in definitionWords)
         {
             var searchHelper = new WordSearchHelper(definitionWord, lettersMatrix2D);
@@ -50,29 +46,15 @@ public class WordSearchCommandHandler
             if (searchResult == true)
             {
                 var foundWord = searchHelper.GetFoundString();
-
+                
                 if (string.Equals(definitionWord, foundWord, StringComparison.OrdinalIgnoreCase))
                 {
-                    foundWordsString.Append(foundWord);
-                    foundWordsString.Append(", Coordinates: ");
-
-                    foreach (var wordEntry in searchHelper.GetFoundWord())
-                    {
-                        foreach (var letterEntry in wordEntry.Value)
-                        {
-                            foundWordsString.Append($"{letterEntry.Key} at {letterEntry.Value}, ");
-                        }
-                    }
-                    foundWordsString.Append(" | ");
+                    foundWordsList.Add(foundWord, searchHelper.GetFoundWord());
                 }
 
-                resp = foundWordsString.ToString().TrimEnd(',', ' ');
-                // break;
             }
         }
 
-
-
-        return Task.FromResult(resp);
+        return Task.FromResult(foundWordsList);
     }
 }

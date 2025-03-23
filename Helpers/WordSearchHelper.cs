@@ -74,15 +74,14 @@ namespace service_matrix.Helpers
                                 _sFoundString.Append(_arLetters[i, j]);
                                 _arLetters[i, j] = "*";
                                 bFound = true;
-                                // return true;
+                                if (string.Equals(_sFoundString.ToString(), _sWord, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (!string.IsNullOrEmpty(_sFoundString.ToString()) || _sFoundString.ToString().Equals(_sWord, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
             }
             int tempCol = _iFirstColumn;
             int tempRow = _iFirstRow;

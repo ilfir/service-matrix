@@ -6,11 +6,6 @@ namespace service_matrix.Controllers;
 [Route("[controller]")]
 public class WordSearchController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
     private readonly ILogger<WordSearchController> _logger;
 
     public WordSearchController(ILogger<WordSearchController> logger)
@@ -19,7 +14,7 @@ public class WordSearchController : ControllerBase
     }
 
     [HttpPost(Name = "GetWords")]
-    public async Task<List<string>> Get(SearchRequest request)
+    public async Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Get(SearchRequest request)
     {
         // var rng = new Random();
         // var result = Enumerable.Range(1, 5).Select(index => Summaries[rng.Next(Summaries.Length)]).ToArray();
@@ -31,9 +26,7 @@ public class WordSearchController : ControllerBase
         var command = new WordSearchCommand(request.MaxLength, request.MinLength, request.MaxWords, request.lettersMatrix);
         var res = await handler.Handle(command, CancellationToken.None);
 
-        var response = new List<string> { joinedLettersMatrix, res };
-
-        return response;
+        return res;
     }
  
 }
