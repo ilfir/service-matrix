@@ -37,6 +37,11 @@ public class WordSearchCommandHandler
         var foundWordsList = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
         foreach (var definitionWord in definitionWords)
         {
+            if (foundWordsList.Keys.Contains(definitionWord))
+            {
+                continue;
+            }
+
             var searchHelper = new WordSearchHelper(definitionWord, lettersMatrix2D);
             if(searchHelper.IsAllLettersInMatrix(lettersMatrix2D, definitionWord) == false)
             {
@@ -54,7 +59,7 @@ public class WordSearchCommandHandler
 
             }
         }
-
+        foundWordsList = foundWordsList.OrderByDescending(entry => entry.Key.Length).ToDictionary(entry => entry.Key, entry => entry.Value);
         return Task.FromResult(foundWordsList);
     }
 }
