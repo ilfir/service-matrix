@@ -9,6 +9,10 @@ public class WordSearchCommandHandler
         stopwatch.Start();
         List<string> definitionWords = new List<string>();
         string filePath = Path.Combine(AppContext.BaseDirectory, "resources", "definitions.txt");
+        if (!File.Exists(filePath))
+        {
+            filePath = Path.Combine("resources", "definitions.txt");
+        }
         foreach (string line in File.ReadLines(filePath))
         {
             if(line.Length > command.MaxLength || line.Length < command.MinLength)

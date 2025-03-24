@@ -239,7 +239,11 @@ namespace service_matrix.Helpers
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
                 {
-                    _allArrayLetters.Add(matrix[i, j].ToCharArray()[0]);
+                    var charArray = matrix[i, j].ToCharArray();
+                    if(charArray.Length > 0)
+                        _allArrayLetters.Add(charArray[0]);
+                    else
+                        _allArrayLetters.Add('*');
                 }
             }
             
