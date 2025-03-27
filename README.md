@@ -67,83 +67,37 @@ Service Matrix is an ASP.NET Core web API project that provides a word search fu
     ```sh
     docker run -p 8080:80 service-matrix
     ```
+    or with local resources
+    ```sh
+    -v /Users/ilfir2/service-matrix-data:/app/data
+    ```
 
 3. Open your browser and navigate to `http://localhost:8080` to view the Swagger UI.
 
 ### Running with Docker on a Remote Host
 
-1. Create a tar file of your project:
+1. Git pull on project
     ```sh
-    tar -cvf service-matrix.tar .
+    git pull
     ```
 
-2. Copy the tar file to the remote Docker host:
-    ```sh
-    scp service-matrix.tar <remote-user>@<remote-docker-host>:/path/to/destination
-    ```
-
-3. SSH into the remote Docker host:
-    ```sh
-    ssh <remote-user>@<remote-docker-host>
-    ```
-
-4. Extract the tar file:
-    ```sh
-    tar -xvf service-matrix.tar -C ./service-matrix
-    cd ./service-matrix
-    ```
-
-5. Build the Docker image:
+2. Build the Docker image:
     ```sh
     docker build -t service-matrix .
     ```
 
-6. Run the Docker container:
+3. Run the Docker container:
     ```sh
     docker run -p 8080:80 service-matrix
     ```
+    or with local resources
+    ```sh
+    -v /Users/ilfir2/service-matrix-data:/app/data
+    ```
 
-7. Open your browser and navigate to `http://<remote-docker-host>:8080` to view the Swagger UI.
+4. Open your browser and navigate to `http://<remote-docker-host>:8080` to view the Swagger UI.
 
 Replace `<remote-user>`, `<remote-docker-host>`, and `/path/to/destination` with the appropriate values for your remote Docker host.
-
-Here's the updated section in your `README.md`:
-
-````markdown
-### Running with Docker on a Remote Host
-
-1. Create a tar file of your project:
-    ```sh
-    tar -cvf service-matrix.tar .
-    ```
-
-2. Copy the tar file to the remote Docker host:
-    ```sh
-    scp service-matrix.tar <remote-user>@<remote-docker-host>:/path/to/destination
-    ```
-
-3. SSH into the remote Docker host:
-    ```sh
-    ssh <remote-user>@<remote-docker-host>
-    ```
-
-4. Extract the tar file:
-    ```sh
-    tar -xvf /path/to/destination/service-matrix.tar -C /path/to/extract
-    cd /path/to/extract/service-matrix
-    ```
-
-5. Build the Docker image:
-    ```sh
-    docker build -t service-matrix .
-    ```
-
-6. Run the Docker container:
-    ```sh
-    docker run -p 8080:80 service-matrix
-    ```
-
-7. Open your browser and navigate to `http://<remote-docker-host>:8080` to view the Swagger UI.
 
 ## API Endpoints
 
