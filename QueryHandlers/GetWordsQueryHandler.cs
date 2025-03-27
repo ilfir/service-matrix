@@ -6,7 +6,7 @@ public class GetWordsQueryHandler
 {
     public async Task<List<string>> Handle(GetWordsQuery query, CancellationToken cancellationToken)
     {
-        var fileName = !query.Include ? "exclude.txt" : "include.txt";
+        var fileName = query.Include ? "include.txt" : "exclude.txt";
         string filePath = Path.Combine(AppContext.BaseDirectory, "data", fileName);
 
         // Read the file lines asynchronously
