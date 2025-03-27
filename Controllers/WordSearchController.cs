@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using service_matrix.CommandHandlers;
 using service_matrix.Commands;
 using service_matrix.DTO;
+using service_matrix.Queries;
+using service_matrix.QueryHandlers;
 
 namespace service_matrix.Controllers;
 
@@ -41,4 +43,16 @@ public class WordsController : ControllerBase
 
         return Ok(res);
     }
+    
+    [HttpGet("List", Name = "GetList")]
+    public async Task<IActionResult> GetList(bool include = true)
+    {
+        var handler = new GetWordsQueryHandler(); // Handler for retrieving words
+        var query = new GetWordsQuery(include); // Query object with the 'include' flag
+        var res = await handler.Handle(query, CancellationToken.None); // Process query via handler
+
+        return Ok(res); // Return results as HTTP 200 response
+
+    }
+    
 }
