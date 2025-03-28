@@ -9,9 +9,9 @@ public class WordSearchCommandHandler
         stopwatch.Start();
         List<string> definitionWords = new List<string>();
         var dictionary = ReadLines("resources", "definitions.txt");
-        var includes = ReadLines("resources", "include.txt");
+        var includes = ReadLines("data", "include.txt");
         dictionary.AddRange(includes);
-        var excludes = ReadLines("resources", "exclude.txt");
+        var excludes = ReadLines("data", "exclude.txt");
         dictionary = dictionary.Except(excludes).ToList();
         foreach (string line in dictionary)
         {
