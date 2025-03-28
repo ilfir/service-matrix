@@ -8,12 +8,12 @@ public class WordSearchCommandHandler
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
         List<string> definitionWords = new List<string>();
-        string filePath = Path.Combine(AppContext.BaseDirectory, "resources", "definitions.txt");
-        if (!File.Exists(filePath))
-        {
-            filePath = Path.Combine("resources", "definitions.txt");
-        }
-        foreach (string line in File.ReadLines(filePath))
+        var dictionary = ReadLines("resources", "definitions.txt");
+        var includes = ReadLines("resources", "include.txt");
+        dictionary.AddRange(includes);
+        var excludes = ReadLines("resources", "exclude.txt");
+        dictionary = dictionary.Except(excludes).ToList();
+        foreach (string line in dictionary)
         {
             if(line.Length > command.MaxLength || line.Length < command.MinLength)
             {
@@ -21,7 +21,6 @@ public class WordSearchCommandHandler
             }
             definitionWords.Add(line);
         }
-        definitionWords.Add("test");
 
         stopwatch.Stop();
         double elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
@@ -65,5 +64,24 @@ public class WordSearchCommandHandler
         }
         foundWordsList = foundWordsList.OrderByDescending(entry => entry.Key.Length).ToDictionary(entry => entry.Key, entry => entry.Value);
         return Task.FromResult(foundWordsList);
+    }
+
+    private List<string> ReadLines(string directory, string fileName)
+    {
+        try
+        {
+            string filePath = Path.Combine(AppContext.BaseDirectory, directory, fileName);
+            if (!File.Exists(filePath))
+            {
+                filePath = Path.Combine(directory, fileName);
+            }
+
+            var res = File.ReadLines(filePath);
+            return res.ToList();
+        }
+        catch (Exception ex)
+        {
+            return new List<string>();
+        }
     }
 }
