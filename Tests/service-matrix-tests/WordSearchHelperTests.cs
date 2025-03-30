@@ -136,7 +136,48 @@ namespace service_matrix.Tests.Helpers
             Assert.True(result);
         }
         
+        [Fact]
+        public void WordSearch_Multiple_StartPoints_ShouldReturnTrue_3()
+        {
+            // Arrange
+            string word = "растлеваться";
+            string[,] source = {
+                { "р", "а", "с", "b", "п" },
+                { "п", "т", "л", "е", "c" },
+                { "е", "н", "в", "а", "c" },
+                { "е", "ж", "т", "ь", "c" },
+                { "п", "п", "с", "я", "д" }
+            };
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
            
+        [Fact]
+        public void WordSearch_Multiple_StartPoints_ShouldReturnTrue_9()
+        {
+            // Arrange
+            string word = "развевание";
+            string[,] source = {
+                { "р", "а", "з", "b", "п" },
+                { "п", "в", "е", "b", "c" },
+                { "е", "в", "а", "н", "c" },
+                { "е", "ж", "о", "и", "c" },
+                { "п", "п", "р", "е", "д" }
+            };
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
+        
         [Fact]
         public void WordSearch_Multiple_StartPoints_ShouldReturnTrue_2()
         {
@@ -157,6 +198,7 @@ namespace service_matrix.Tests.Helpers
             // Assert
             Assert.True(result);
         }
+
         
         [Fact]
         public void WordSearch_FindAllStartPoints_ShouldReturn3Locations()
