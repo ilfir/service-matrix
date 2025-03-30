@@ -24,9 +24,37 @@ namespace service_matrix.Helpers
             _sWord = sWord2;
         }
         
+        public List<(int, int)> FindLetterLocations()
+        {
+            string letter = _sWord.ToCharArray()[0].ToString();
+            List<(int, int)> locations = new List<(int, int)>();
+            for (int i = 0; i < _arLetters.GetLength(0); i++)
+            {
+                for (int j = 0; j < _arLetters.GetLength(1); j++)
+                {
+                    if (_arLetters[i, j] == letter)
+                    {
+                        locations.Add((i, j));
+                    }
+                }
+            }
+            return locations;
+        }
+        
         public bool Search()
         {
-            return FindWord(null, null, null);
+            var startPositions = FindLetterLocations();
+
+            foreach (var startPosition in startPositions)
+            { 
+                _sFoundString = new StringBuilder();
+                 var isWordFound = FindWord(0, startPosition.Item1, startPosition.Item2);
+                 if (isWordFound)
+                 {
+                     return true;
+                 }
+            }
+            return false;
         }
 
         public Dictionary<int, Dictionary<string, string>> GetFoundWord()
@@ -88,7 +116,7 @@ namespace service_matrix.Helpers
             UpdateNextFirstLetterStartPos();
             if (!(tempCol == _iFirstColumn && tempRow == _iFirstRow) && GetNextFirstLetter(_iFirstColumn, _iFirstRow))
             {
-                FindWord(1, null, null);
+                return FindWord(1, null, null);
             }
             return false;
         }
@@ -166,7 +194,7 @@ namespace service_matrix.Helpers
             }
         }
 
-        private bool IsNeighborToNextLetter(int iCurrentX, int iCurrentY, string[] arWord2, int iWordIndex, string[,] arLettersLoc)
+        public bool IsNeighborToNextLetter(int iCurrentX, int iCurrentY, string[] arWord2, int iWordIndex, string[,] arLettersLoc)
         {
             if (iWordIndex == arWord2.Length - 1 || iWordIndex == 0)
             {
