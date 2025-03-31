@@ -163,6 +163,29 @@ namespace service_matrix.Tests.Helpers
         }
         
         [Fact]
+        public void WordSearch_Multiple_ShouldReturnTrue_репетированный()
+        {
+            // Arrange
+            string word = "репетированный";
+            string[,] source = {
+                {"н", "р", "е", "п", "д"},
+                {"с", "ы", "н", "е", "о"},
+                {"й", "ч", "у", "н", "т"},
+                {"т", "к", "а", "р", "и"},
+                {"д", "в", "у", "в", "о"}
+            };
+
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(word, helper.GetFoundString());
+        }
+        
+        [Fact]
         public void WordSearch_Multiple_ShouldReturnTrue_дарвинист()
         {
             // Arrange
