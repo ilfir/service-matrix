@@ -161,7 +161,29 @@ namespace service_matrix.Tests.Helpers
             // Assert
             Assert.True(result);
         }
+        
+        [Fact]
+        public void WordSearch_Multiple_ShouldReturnTrue_дарвинист()
+        {
+            // Arrange
+            string word = "дарвинист";
+            string[,] source = {
+                {"е", "в", "с", "е", "ю"},
+                {"н", "и", "з", "т", "т"},
+                {"н", "и", "к", "п", "ю"},
+                {"е", "в", "р", "д", "о"},
+                {"м", "л", "о", "а", "и"}
+            };
 
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
+        
         [Fact]
         public void WordSearch_Multiple_StartPoints_ShouldReturnTrue()
         {
