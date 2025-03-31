@@ -116,6 +116,48 @@ namespace service_matrix.Tests.Helpers
         }
         
         [Fact]
+        public void WordSearch_Multiple_ShouldReturnTrue_жирнеть()
+        {
+            // Arrange
+            string word = "жирнеть";
+            string[,] source = {
+                { "ж", "и", "р", "b", "c" },
+                { "р", "н", "е", "т", "ь" },
+                { "е", "d", "з", "c", "c" },
+                { "в", "h", "i", "b", "c" },
+                { "з", "h", "i", "b", "c" }
+            };
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
+        
+        [Fact]
+        public void WordSearch_Multiple_ShouldReturnTrue_сдвижение()
+        {
+            // Arrange
+            string word = "сдвижение";
+            string[,] source = {
+                { "с", "д", "в", "b", "c" },
+                { "и", "ж", "и", "т", "ь" },
+                { "е", "н", "и", "c", "c" },
+                { "в", "е", "i", "b", "c" },
+                { "з", "h", "i", "b", "c" }
+            };
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public void WordSearch_Multiple_StartPoints_ShouldReturnTrue()
         {
             // Arrange
