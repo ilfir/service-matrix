@@ -1,7 +1,7 @@
 using service_matrix.Helpers;
 using Xunit;
 
-namespace service_matrix.Tests.Helpers
+namespace service_matrix_tests
 {
     public class WordSearchHelperTests
     {
@@ -9,7 +9,6 @@ namespace service_matrix.Tests.Helpers
         public void CopyArray_ShouldReturnExactCopy()
         {
             // Arrange
-            var word = "test";
             string[,] source =
             {
                 {"a", "b", "c", "b", "c"},
@@ -280,6 +279,27 @@ namespace service_matrix.Tests.Helpers
                 { "п", "e", "f", "b", "c" },
                 { "е", "н", "и", "е", "c" },
                 { "е", "ж", "о", "л", "c" },
+                { "п", "п", "р", "е", "д" }
+            };
+            var helper = new WordSearchHelper(word, source);
+
+            // Act
+            var result = helper.Search();
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void WordSearch_Multiple_StartPoints_ShouldReturnTrue_прилипаться()
+        {
+            // Arrange
+            string word = "прилипаться";
+            string[,] source = {
+                { "п", "р", "и", "b", "п" },
+                { "п", "л", "и", "b", "c" },
+                { "", "п", "а", "т", "c" },
+                { "е", "с", "ь", "с", "я" },
                 { "п", "п", "р", "е", "д" }
             };
             var helper = new WordSearchHelper(word, source);
