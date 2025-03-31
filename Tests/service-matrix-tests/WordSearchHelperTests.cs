@@ -1,5 +1,3 @@
-
-
 using service_matrix.Helpers;
 using Xunit;
 
@@ -12,12 +10,13 @@ namespace service_matrix.Tests.Helpers
         {
             // Arrange
             var word = "test";
-            string[,] source = {
-                { "a", "b", "c", "b", "c" },
-                { "d", "t", "f", "b", "c" },
-                { "g", "h", "s", "b", "c" },
-                { "g", "h", "i", "e", "c" },
-                { "g", "h", "i", "b", "t" }
+            string[,] source =
+            {
+                {"a", "b", "c", "b", "c"},
+                {"d", "t", "f", "b", "c"},
+                {"g", "h", "s", "b", "c"},
+                {"g", "h", "i", "e", "c"},
+                {"g", "h", "i", "b", "t"}
             };
             var helper = new WordSearchHelper("word", source);
 
@@ -35,12 +34,13 @@ namespace service_matrix.Tests.Helpers
         {
             // Arrange
             string word = "doc";
-            string[,] source = {
-                { "a", "b", "c", "b", "c" },
-                { "d", "e", "f", "b", "c" },
-                { "g", "d", "o", "c", "c" },
-                { "g", "h", "i", "b", "c" },
-                { "g", "h", "i", "b", "c" }
+            string[,] source =
+            {
+                {"a", "b", "c", "b", "c"},
+                {"d", "e", "f", "b", "c"},
+                {"g", "d", "o", "c", "c"},
+                {"g", "h", "i", "b", "c"},
+                {"g", "h", "i", "b", "c"}
             };
             var helper = new WordSearchHelper(word, source);
 
@@ -56,12 +56,13 @@ namespace service_matrix.Tests.Helpers
         {
             // Arrange
             string word = "xyz";
-            string[,] source = {
-                { "a", "b", "c", "b", "c" },
-                { "d", "e", "f", "b", "c" },
-                { "g", "d", "o", "c", "c" },
-                { "g", "h", "i", "b", "c" },
-                { "g", "h", "i", "b", "c" }
+            string[,] source =
+            {
+                {"a", "b", "c", "b", "c"},
+                {"d", "e", "f", "b", "c"},
+                {"g", "d", "o", "c", "c"},
+                {"g", "h", "i", "b", "c"},
+                {"g", "h", "i", "b", "c"}
             };
             var helper = new WordSearchHelper(word, source);
 
@@ -77,15 +78,16 @@ namespace service_matrix.Tests.Helpers
         public void IsNeighborToNextLetter_ShouldReturnTrue_WhenNextLetterIsNeighbor()
         {
             // Arrange
-            string[,] source = {
-                { "a", "b", "c", "b", "c" },
-                { "d", "e", "f", "b", "c" },
-                { "g", "d", "o", "c", "c" },
-                { "g", "h", "i", "b", "c" },
-                { "g", "h", "i", "b", "c" }
+            string[,] source =
+            {
+                {"a", "b", "c", "b", "c"},
+                {"d", "e", "f", "b", "c"},
+                {"g", "d", "o", "c", "c"},
+                {"g", "h", "i", "b", "c"},
+                {"g", "h", "i", "b", "c"}
             };
             var helper = new WordSearchHelper("ab", source);
-            string[] word = { "a", "b" };
+            string[] word = {"a", "b"};
 
             // Act
             var result = helper.IsNeighborToNextLetter(0, 0, word, 0, source);
@@ -98,15 +100,16 @@ namespace service_matrix.Tests.Helpers
         public void IsNeighborToNextLetter_ShouldReturnFalse_WhenNextLetterIsNotNeighbor()
         {
             // Arrange
-            string[,] source = {
-                { "a", "b", "c", "b", "c" },
-                { "d", "e", "f", "b", "c" },
-                { "g", "d", "o", "c", "c" },
-                { "g", "h", "i", "b", "c" },
-                { "g", "h", "i", "b", "c" }
+            string[,] source =
+            {
+                {"a", "b", "c", "b", "c"},
+                {"d", "e", "f", "b", "c"},
+                {"g", "d", "o", "c", "c"},
+                {"g", "h", "i", "b", "c"},
+                {"g", "h", "i", "b", "c"}
             };
             var helper = new WordSearchHelper("ab", source);
-            string[] word = { "a", "b" };
+            string[] word = {"a", "b"};
 
             // Act
             var result = helper.IsNeighborToNextLetter(0, 0, word, 0, source);
@@ -114,18 +117,19 @@ namespace service_matrix.Tests.Helpers
             // Assert
             Assert.True(result);
         }
-        
+
         [Fact]
         public void WordSearch_Multiple_ShouldReturnTrue_жирнеть()
         {
             // Arrange
             string word = "жирнеть";
-            string[,] source = {
-                { "ж", "и", "р", "b", "c" },
-                { "р", "н", "е", "т", "ь" },
-                { "е", "d", "з", "c", "c" },
-                { "в", "h", "i", "b", "c" },
-                { "з", "h", "i", "b", "c" }
+            string[,] source =
+            {
+                {"ж", "и", "р", "b", "c"},
+                {"р", "н", "е", "т", "ь"},
+                {"е", "d", "з", "c", "c"},
+                {"в", "h", "i", "b", "c"},
+                {"з", "h", "i", "b", "c"}
             };
             var helper = new WordSearchHelper(word, source);
 
@@ -135,19 +139,20 @@ namespace service_matrix.Tests.Helpers
             // Assert
             Assert.True(result);
         }
-        
+
         [Fact]
         public void WordSearch_Multiple_ShouldReturnTrue_сдвижение()
         {
             // Arrange
             string word = "сдвижение";
             string[,] source = {
-                { "с", "д", "в", "b", "c" },
-                { "и", "ж", "и", "т", "ь" },
-                { "е", "н", "и", "c", "c" },
-                { "в", "е", "i", "b", "c" },
-                { "з", "h", "i", "b", "c" }
+                {"с", "", "", "", "",},
+                {"д", "в", "и", "", ""},
+                {"с", "ж", "е", "", ""},
+                {"", "н", "и", "е", ""},
+                {"", "", "", "", ""}
             };
+
             var helper = new WordSearchHelper(word, source);
 
             // Act
