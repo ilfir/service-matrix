@@ -102,7 +102,8 @@ namespace service_matrix.Helpers
                                 _sFoundString.Append(_arLetters[i, j]);
                                 _arLetters[i, j] = "*";
                                 bFound = true;
-                                iMatrixStart = iMatrixStart == 0 ? iMatrixStart : iMatrixStart-1;
+                                iMatrixStart = iMatrixStart == 0 ? iMatrixStart : i-1;
+                                jMatrixStart = jMatrixStart == 0 ? jMatrixStart : j-1;
                                 if (string.Equals(_sFoundString.ToString(), _sWord, StringComparison.OrdinalIgnoreCase))
                                 {
                                     return true;
