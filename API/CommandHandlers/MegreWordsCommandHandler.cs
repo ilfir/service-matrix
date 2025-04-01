@@ -8,7 +8,6 @@ public class MergeWordsCommandHandler
 {
     public async Task<MergeResponse> Handle(MergeWordsCommand cmd, CancellationToken cancellationToken)
     {
-        // var addedCounter = 0;
         var removedCounter = 0;
         
         var includes = FileHelper.ReadFileAsync("data", "include.txt").ToList();
@@ -29,30 +28,13 @@ public class MergeWordsCommandHandler
             if (!dictionary.Contains(includeFormatted))
             {
                 mergedList.Add(includeFormatted);
-                // dictionary.Add(includeFormatted);
-                // addedCounter++;
             }
         }
         includes = includes.Except(mergedList).ToList();
-
-        // var excludedList = new List<string>();
-        // foreach (var exclude in excludes)
-        // {
-        //     var excludeFormatted = exclude.ToLower().Trim();
-        //     var isRemoved = dictionary.Remove(excludeFormatted);
-        //     if(isRemoved)
-        //     {
-        //         removedCounter++;
-        //         excludedList.Add(exclude);
-        //     }
-        //
-        // }
-        // excludes = excludes.Except(excludedList).ToList();
         
         //Save all files
         await FileHelper.WriteFileNewContents(mergedList, "data", "mergeable_definitions.txt");
         await FileHelper.WriteFileNewContents(includes, "data", "include.txt");
-        // await FileHelper.WriteFileNewContents(excludes, "data", "exclude.txt");
         
         var res = new MergeResponse(mergedList.Count, removedCounter);
         return res;
