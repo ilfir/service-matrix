@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using service_matrix.CommandHandlers;
 using service_matrix.Commands;
 using service_matrix.DTO;
+using service_matrix.Helpers;
 using service_matrix.Queries;
 using service_matrix.QueryHandlers;
 
@@ -68,5 +69,20 @@ public class WordsController : ControllerBase
         // Return the count of new words added
         return Ok(res);
     }
+    
+    /// <summary>
+    /// One off to get rid of hyphenated words or words with spaces in them
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("CleanMerge")]
+    public async Task<IActionResult> CleanMerge()
+    {
+        var input = FileHelper.ReadFileAsync("resources", "merged.txt");
+        var output = WordSearchHelper.CleanWords(input);
+        FileHelper.WriteFileNewContents(output, "data", "merged_cleaned.txt");
+            
+        return Ok("BEFORE: " + input.Count() + " AFTER: " + output.Count());
+    }
+
     
 }

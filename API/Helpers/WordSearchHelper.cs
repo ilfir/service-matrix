@@ -285,5 +285,21 @@ namespace service_matrix.Helpers
             }
             return true;
         }
+
+        public static IEnumerable<string> CleanWords(IEnumerable<string> input)
+        {
+            var output = new List<string>();
+            foreach (var word in input)
+            {
+                if (word.Length < 5 || word.Contains(' ') || word.Contains('-'))
+                {
+                    continue;
+                }
+                output.Add(word);
+            }
+
+            return output;
+        }
+
     }
 }
