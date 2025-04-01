@@ -22,6 +22,11 @@ public class WordSearchCommandHandler
         var includes = FileHelper.ReadFileAsync( "data", "include.txt");
         foreach (string line in includes)
         {
+            if (line.Length > 25)
+            {
+                continue;
+            }
+
             if(line.Length < command.MinLength)
             {
                 break;
