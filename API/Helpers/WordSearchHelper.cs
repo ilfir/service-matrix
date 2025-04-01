@@ -291,7 +291,7 @@ namespace service_matrix.Helpers
             var output = new List<string>();
             foreach (var word in input)
             {
-                if (word.Length < 5 || word.Contains(' ') || word.Contains('-'))
+                if (word.Length < 6 || word.Contains(' ') || word.Contains('-'))
                 {
                     continue;
                 }
