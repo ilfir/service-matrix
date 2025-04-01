@@ -297,7 +297,7 @@ namespace service_matrix.Helpers
                 }
                 output.Add(word);
             }
-            output = output.OrderByDescending(word => word.Length).ToList();output
+            output = output.OrderByDescending(word => word.Length).ToList();
             return output;
         }
 
