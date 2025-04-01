@@ -55,4 +55,18 @@ public class WordsController : ControllerBase
 
     }
     
+    /// <summary>
+    /// Merge dictionary words with the include and exclude lists
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("Merge")]
+    public async Task<IActionResult> MergeWords()
+    {
+        var handler = new MergeWordsCommandHandler();
+        var res = await handler.Handle(new MergeWordsCommand(), CancellationToken.None);
+        
+        // Return the count of new words added
+        return Ok(res);
+    }
+    
 }
