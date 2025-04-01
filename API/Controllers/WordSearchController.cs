@@ -55,4 +55,32 @@ public class WordsController : ControllerBase
 
     }
     
+    [HttpPost("Merge")]
+    public async Task<IActionResult> MergeWords()
+    {
+        // Read the contents of the files
+        var includeWords = await System.IO.File.ReadAllLinesAsync(IncludeFilePath);
+        var dictionaryWords = new HashSet<string>(await System.IO.File.ReadAllLinesAsync(DictionaryFilePath));
+        // Initialize a list to hold new words to be added
+        List<string> newWords = new List<string>();
+        // Iterate over include words and add them to dictionary if not already present
+        foreach (var word in includeWords)
+        {
+            if (!dictionaryWords.Contains(word))
+            {
+                newWords.Add(word);
+            }
+        }
+        // Add new words to dictionary
+        if (newWords.Count > 0)
+        {
+            await System.IO.File.AppendAllLinesAsync(DictionaryFilePath, newWords);
+        }
+        // Remove successfully added words from include.txt
+        var remainingWords = includeWords.Except(newWords).ToArray();
+        await System.IO.File.WriteAllLinesAsync(IncludeFilePath, remainingWords);
+        // Return the count of new words added
+        return Ok(new { CountAdded = newWords.Count });
+    }
+    
 }
