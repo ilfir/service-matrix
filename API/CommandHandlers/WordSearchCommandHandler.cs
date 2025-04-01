@@ -6,7 +6,9 @@ public class WordSearchCommandHandler
     public Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
     {
         List<string> definitionWords = new List<string>();
-        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt");
+        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt").ToList();
+        var mergedDictionary = FileHelper.ReadFileAsync( "resources", "merged.txt").ToList();
+        dictionary.AddRange(mergedDictionary);
         foreach (string line in dictionary)
         {
             if(line.Length > command.MaxLength || line.Length < command.MinLength)
@@ -73,15 +75,4 @@ public class WordSearchCommandHandler
         foundWordsList = foundWordsList.OrderByDescending(entry => entry.Key.Length).ToDictionary(entry => entry.Key, entry => entry.Value);
         return Task.FromResult(foundWordsList);
     }
-    
-    // private IEnumerable<string> ReadFileAsync(string directory, string fileName )
-    // {
-    //     string filePath = Path.Combine(AppContext.BaseDirectory,directory, fileName);
-    //     if (!File.Exists(filePath))
-    //     {
-    //         filePath = Path.Combine(directory, fileName);
-    //     }
-    //
-    //     return File.ReadLines(filePath);
-    // }
 }

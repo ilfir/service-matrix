@@ -1,4 +1,5 @@
 using service_matrix.Commands;
+using service_matrix.Helpers;
 
 namespace service_matrix.CommandHandlers;
 
@@ -12,10 +13,9 @@ public class UpdateWordsCommandHandler
             return 0; // No words to update
         }
 
-        var fileName = !command.Include ? "exclude.txt" : "include.txt";
-        string filePath = Path.Combine(AppContext.BaseDirectory, "data", fileName);
         // Read All lines
-        var existingWords = File.ReadLines(filePath);
+        var fileName = !command.Include ? "exclude.txt" : "include.txt";
+        var existingWords = FileHelper.ReadFileAsync("data", fileName);
         
         // Determine which words need to be added
         var newWords = command.Words
@@ -27,18 +27,9 @@ public class UpdateWordsCommandHandler
 
         newWords = newWords.Distinct().ToList();
         newWords.ForEach(x=>x.ToLower().Trim());
-
-        // Open the file for editing (reading and writing)
-        int entryCounter = 0;
-        await using FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        fs.Seek(0, SeekOrigin.End);
-        // Write new content
-        await using StreamWriter writer = new StreamWriter(fs);
-        foreach (var word in newWords.Distinct())
-        {
-            await writer.WriteLineAsync(word.ToLower());
-            entryCounter++;
-        }
-        return entryCounter;
+        
+        // Save contents
+        await FileHelper.WriteFileAppend(newWords, "data", fileName);
+        return newWords.Count;
     }
 }

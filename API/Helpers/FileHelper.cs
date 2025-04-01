@@ -23,4 +23,14 @@ public static class FileHelper
 
         await File.WriteAllLinesAsync(filePath, newContents);
     }
+    
+    public static async Task WriteFileAppend(IEnumerable<string> newContents, string directory, string fileName)
+    {
+        string filePath = Path.Combine(AppContext.BaseDirectory, directory, fileName);
+        if (!File.Exists(filePath))
+        {
+            filePath = Path.Combine(directory, fileName);
+        }
+        await File.AppendAllLinesAsync(filePath, newContents);
+    }
 }

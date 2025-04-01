@@ -17,4 +17,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY resources/definitions.txt ./resources/definitions.txt
+COPY resources/merged.txt ./resources/merged.txt
 ENTRYPOINT ["dotnet", "service-matrix.dll"]

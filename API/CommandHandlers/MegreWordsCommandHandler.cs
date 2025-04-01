@@ -1,3 +1,4 @@
+using service_matrix.Commands;
 using service_matrix.DTO;
 using service_matrix.Helpers;
 
@@ -5,50 +6,56 @@ namespace service_matrix.CommandHandlers;
 
 public class MergeWordsCommandHandler
 {
-    public async Task<MergeResponse> Handle(CancellationToken cancellationToken)
+    public async Task<MergeResponse> Handle(MergeWordsCommand cmd, CancellationToken cancellationToken)
     {
-        var addedCounter = 0;
+        // var addedCounter = 0;
         var removedCounter = 0;
         
-        var includes = FileHelper.ReadFileAsync("data", "include.txt");
-        var excludes = FileHelper.ReadFileAsync("data", "exclude.txt");
-        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt");
-
-        var includedList = new List<string>();
+        var includes = FileHelper.ReadFileAsync("data", "include.txt").ToList();
+        // var excludes = FileHelper.ReadFileAsync("data", "exclude.txt").ToList();
+        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt").ToList();
+        var merged = FileHelper.ReadFileAsync( "resources", "merged.txt").ToList();
+        dictionary.AddRange(merged);
+        
+        var mergedList = new List<string>();
         foreach (var include in includes)
         {
-            var includeFormatted = include.ToLower().Trim();
-            if (!dictionary.Contains(include))
+            if (include.Length < 5 || include.IndexOf('-') > -1)
             {
-                dictionary.ToList().Add(includeFormatted);
-                addedCounter++;
-                includedList.Add(include);
+                continue;
             }
-        }
-        includes = includes.Except(includedList);
 
-        var excludedList = new List<string>();
-        foreach (var exclude in excludes)
-        {
-            var excludeFormatted = exclude.ToLower().Trim();
-            if (dictionary.Contains(exclude))
+            var includeFormatted = include.ToLower().Trim().Replace('ё', 'е');
+            if (!dictionary.Contains(includeFormatted))
             {
-                dictionary.ToList().Remove(excludeFormatted);
-                removedCounter++;
-                excludedList.Add(exclude);
+                mergedList.Add(includeFormatted);
+                // dictionary.Add(includeFormatted);
+                // addedCounter++;
             }
         }
-        excludes = excludes.Except(excludedList);
+        includes = includes.Except(mergedList).ToList();
+
+        // var excludedList = new List<string>();
+        // foreach (var exclude in excludes)
+        // {
+        //     var excludeFormatted = exclude.ToLower().Trim();
+        //     var isRemoved = dictionary.Remove(excludeFormatted);
+        //     if(isRemoved)
+        //     {
+        //         removedCounter++;
+        //         excludedList.Add(exclude);
+        //     }
+        //
+        // }
+        // excludes = excludes.Except(excludedList).ToList();
         
         //Save all files
-        await FileHelper.WriteFileNewContents(dictionary, "resources", "definitions.txt");
+        await FileHelper.WriteFileNewContents(mergedList, "data", "mergeable_definitions.txt");
         await FileHelper.WriteFileNewContents(includes, "data", "include.txt");
-        await FileHelper.WriteFileNewContents(excludes, "data", "exclude.txt");
+        // await FileHelper.WriteFileNewContents(excludes, "data", "exclude.txt");
         
-        var res = new MergeResponse(addedCounter, removedCounter);
+        var res = new MergeResponse(mergedList.Count, removedCounter);
         return res;
     }
-    
-    
     
 }
