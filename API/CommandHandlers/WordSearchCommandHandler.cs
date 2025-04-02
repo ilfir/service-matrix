@@ -17,8 +17,7 @@ public class WordSearchCommandHandler
             }
             definitionWords.Add(line);
         }
-        // definitionWords = definitionWords.OrderByDescending(word => word.Length).ToList();
-
+       
         var includes = FileHelper.ReadFileAsync( "data", "include.txt");
         foreach (string line in includes)
         {
@@ -57,11 +56,6 @@ public class WordSearchCommandHandler
         var foundWordsList = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
         foreach (var definitionWord in definitionWords)
         {
-            // if (foundWordsList.Count >= command.MaxWords)
-            // {
-            //     break;
-            // }
-
             if (foundWordsList.Keys.Contains(definitionWord))
             {
                 continue;
@@ -85,7 +79,6 @@ public class WordSearchCommandHandler
             }
         }
         
-        // foundWordsList = foundWordsList.OrderByDescending(entry => entry.Key.Length).ToDictionary(entry => entry.Key, entry => entry.Value);
         var topResults = foundWordsList
             .OrderByDescending(pair => pair.Key.Length)
             .Take(command.MaxWords) 
