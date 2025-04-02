@@ -87,7 +87,7 @@ public class WordSearchCommandHandler
         
         // foundWordsList = foundWordsList.OrderByDescending(entry => entry.Key.Length).ToDictionary(entry => entry.Key, entry => entry.Value);
         var top20 = foundWordsList
-            .OrderByDescending(pair => pair.Key)
+            .OrderByDescending(pair => pair.Key.Length)
             .Take(command.MaxWords) 
             .ToDictionary(pair => pair.Key, pair => pair.Value);
 
