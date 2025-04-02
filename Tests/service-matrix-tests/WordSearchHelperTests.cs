@@ -41,10 +41,9 @@ namespace service_matrix_tests
                 {"g", "h", "i", "b", "c"},
                 {"g", "h", "i", "b", "c"}
             };
-            var helper = new WordSearchHelper(word, source);
 
             // Act
-            var result = helper.IsAllLettersInMatrix(source, word);
+            var result = WordSearchHelper.IsAllLettersInMatrix(source, word);
 
             // Assert
             Assert.True(result);
@@ -63,11 +62,9 @@ namespace service_matrix_tests
                 {"g", "h", "i", "b", "c"},
                 {"g", "h", "i", "b", "c"}
             };
-            var helper = new WordSearchHelper(word, source);
-
-
+    
             // Act
-            var result = helper.IsAllLettersInMatrix(source, word);
+            var result = WordSearchHelper.IsAllLettersInMatrix(source, word);
 
             // Assert
             Assert.False(result);
