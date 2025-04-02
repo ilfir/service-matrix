@@ -56,16 +56,11 @@ public class WordSearchCommandHandler
         var foundWordsList = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
         foreach (var definitionWord in definitionWords)
         {
-            if (foundWordsList.Keys.Contains(definitionWord))
+            if (foundWordsList.Keys.Contains(definitionWord) || !WordSearchHelper.IsAllLettersInMatrix(lettersMatrix2D, definitionWord))
             {
                 continue;
             }
-
             var searchHelper = new WordSearchHelper(definitionWord, lettersMatrix2D);
-            if(searchHelper.IsAllLettersInMatrix(lettersMatrix2D, definitionWord) == false)
-            {
-                continue;
-            }
             var searchResult = searchHelper.Search();
             if (searchResult == true)
             {

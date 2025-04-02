@@ -25,11 +25,14 @@ public class UpdateWordsCommandHandler
         if(newWords.Count == 0)
             return 0;
 
-        newWords = newWords.Distinct().ToList();
-        newWords.ForEach(x=>x.ToLower().Trim());
+        var trimmedLoweredList = new List<string>();
+        foreach (var newWord in newWords.Distinct().ToList())
+        {
+            trimmedLoweredList.Add(newWord.ToLower().Trim());
+        }
         
         // Save contents
-        await FileHelper.WriteFileAppend(newWords, "data", fileName);
-        return newWords.Count;
+        await FileHelper.WriteFileAppend(trimmedLoweredList, "data", fileName);
+        return trimmedLoweredList.Count;
     }
 }

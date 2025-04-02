@@ -259,7 +259,7 @@ namespace service_matrix.Helpers
         /// <param name="matrix"></param>
         /// <param name="wholeWord"></param>
         /// <returns></returns>
-        public bool IsAllLettersInMatrix(String[,] matrix, String wholeWord) {
+        public static bool IsAllLettersInMatrix(String[,] matrix, String wholeWord) {
             
             List<char>? _allArrayLetters = new();
             var word = wholeWord.ToCharArray();
@@ -300,6 +300,5 @@ namespace service_matrix.Helpers
             output = output.OrderByDescending(word => word.Length).ToList();
             return output;
         }
-
     }
 }
