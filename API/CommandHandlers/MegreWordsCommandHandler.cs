@@ -19,7 +19,7 @@ public class MergeWordsCommandHandler
         var mergedList = new List<string>();
         foreach (var include in includes)
         {
-            if (include.Length < 5 || include.IndexOf('-') > -1 || include.IndexOf(' ') > -1)
+            if (include.Length < 4 || include.IndexOf('-') > -1 || include.IndexOf(' ') > -1)
             {
                 continue;
             }
