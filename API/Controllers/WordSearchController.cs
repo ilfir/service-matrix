@@ -79,7 +79,7 @@ public class WordsController : ControllerBase
     {
         var input = FileHelper.ReadFileAsync("resources", "merged.txt");
         var output = WordSearchHelper.CleanWords(input);
-        FileHelper.WriteFileNewContents(output, "data", "merged_cleaned.txt");
+        await FileHelper.WriteFileNewContents(output, "data", "merged_cleaned.txt");
             
         return Ok("BEFORE: " + input.Count() + " AFTER: " + output.Count());
     }
