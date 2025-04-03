@@ -84,5 +84,18 @@ public class WordsController : ControllerBase
         return Ok("BEFORE: " + input.Count() + " AFTER: " + output.Count());
     }
 
+    /// <summary>
+    /// Lookup word or part of word in all dictionaries
+    /// </summary>
+    /// <param name="word"></param>
+    /// <returns></returns>
+    [HttpGet("LookupWord")]
+    public async Task<IActionResult> LookupWord(string word)
+    {
+        var query = new LookupWordQuery(word);
+        var handler = new LookupWordQueryHandler();
+        var res = await handler.Handle(query, CancellationToken.None);
+        return Ok(res);
+    }
     
 }
