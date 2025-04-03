@@ -20,7 +20,7 @@ namespace service_matrix_tests
             var helper = new WordSearchHelper("word", source);
 
             // Act
-            var result = helper.CopyArray(source);
+            var result = WordSearchHelper.CopyArray(source);
 
             // Assert
             Assert.Equal(source, result);

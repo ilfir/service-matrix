@@ -1,8 +1,18 @@
-using System.Diagnostics;
 using service_matrix.Helpers;
 
+namespace service_matrix.CommandHandlers;
+
+/// <summary>
+/// 
+/// </summary>
 public class WordSearchCommandHandler
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
     {
         List<string> definitionWords = new List<string>();
@@ -42,14 +52,14 @@ public class WordSearchCommandHandler
             definitionWords.Remove(line);
         }
 
-        int rows = command.lettersMatrix.Count;
-        int columns = command.lettersMatrix[0].Count;
+        int rows = command.LettersMatrix.Count;
+        int columns = command.LettersMatrix[0].Count;
         string[,] lettersMatrix2D = new string[rows, columns];
         for (int i = 0; i < rows; i++)
         {
             for (int j = 0; j < columns; j++)
             {
-                lettersMatrix2D[i, j] = command.lettersMatrix[i][j];
+                lettersMatrix2D[i, j] = command.LettersMatrix[i][j];
             }
         }
 

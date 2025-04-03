@@ -3,8 +3,17 @@ using service_matrix.Helpers;
 
 namespace service_matrix.CommandHandlers;
 
+/// <summary>
+/// Update words with given list
+/// </summary>
 public class UpdateWordsCommandHandler
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<int> Handle(UpdateWordsCommand command, CancellationToken cancellationToken)
     {
         // Example logic to update words

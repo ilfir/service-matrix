@@ -1,3 +1,8 @@
 namespace service_matrix.Queries;
 
-public record LookupWordQuery(string Word);
+/// <summary>
+/// 
+/// </summary>
+/// <param name="Word"></param>
+/// <param name="ExactMatch"></param>
+public record LookupWordQuery(string Word, bool ExactMatch);

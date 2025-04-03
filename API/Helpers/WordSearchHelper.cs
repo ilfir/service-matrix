@@ -2,6 +2,9 @@ using System.Text;
 
 namespace service_matrix.Helpers
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class WordSearchHelper
     {
         private string[,] _arLetters;
@@ -14,6 +17,11 @@ namespace service_matrix.Helpers
         private StringBuilder _sFoundString;
         private readonly string _sWord;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sWord2"></param>
+        /// <param name="arLetters2"></param>
         public WordSearchHelper(string sWord2, string[,] arLetters2)
         {
             _arLettersStatic = CopyArray(arLetters2);
@@ -24,6 +32,10 @@ namespace service_matrix.Helpers
             _sWord = sWord2;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public List<(int, int)> FindLetterLocations()
         {
             string letter = _sWord.ToCharArray()[0].ToString();
@@ -41,6 +53,10 @@ namespace service_matrix.Helpers
             return locations;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool Search()
         {
             var startPositions = FindLetterLocations();
@@ -57,16 +73,31 @@ namespace service_matrix.Helpers
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<int, Dictionary<string, string>> GetFoundWord()
         {
             return _foundWord;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string GetFoundString()
         {
             return _sFoundString.ToString();
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="iWordIndex"></param>
+        /// <param name="iMatrixStart"></param>
+        /// <param name="jMatrixStart"></param>
+        /// <returns></returns>
         public bool FindWord(int? iWordIndex, int? iMatrixStart, int? jMatrixStart)
         {
             if (iMatrixStart == null)
@@ -123,6 +154,12 @@ namespace service_matrix.Helpers
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="iMatrixStart"></param>
+        /// <param name="jMatrixStart"></param>
+        /// <returns></returns>
         public bool GetNextFirstLetter(int iMatrixStart, int jMatrixStart)
         {
             int i = _iFirstColumn;
@@ -163,7 +200,12 @@ namespace service_matrix.Helpers
             return bFound;
         }
 
-        public string[,] CopyArray(string[,] source)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static string[,] CopyArray(string[,] source)
         {
             string[,] copy = new string[source.GetLength(0), source.GetLength(1)];
             for (int i = 0; i < source.GetLength(0); i++)
@@ -196,6 +238,15 @@ namespace service_matrix.Helpers
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="iCurrentX"></param>
+        /// <param name="iCurrentY"></param>
+        /// <param name="arWord2"></param>
+        /// <param name="iWordIndex"></param>
+        /// <param name="arLettersLoc"></param>
+        /// <returns></returns>
         public bool IsNeighborToNextLetter(int iCurrentX, int iCurrentY, string[] arWord2, int iWordIndex, string[,] arLettersLoc)
         {
             if (iWordIndex == arWord2.Length - 1 || iWordIndex == 0)
@@ -286,6 +337,11 @@ namespace service_matrix.Helpers
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static IEnumerable<string> CleanWords(IEnumerable<string> input)
         {
             var output = new List<string>();

@@ -8,17 +8,18 @@ using service_matrix.QueryHandlers;
 
 namespace service_matrix.Controllers;
 
+/// <summary>
+/// 
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class WordsController : ControllerBase
 {
-    private readonly ILogger<WordsController> _logger;
-
-    public WordsController(ILogger<WordsController> logger)
-    {
-        _logger = logger;
-    }
-
+    /// <summary>
+    /// Run Word search for given matrix
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("Search", Name = "Search")]
     public async Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Search(SearchRequest request)
     {
@@ -45,6 +46,11 @@ public class WordsController : ControllerBase
         return Ok(res);
     }
     
+    /// <summary>
+    /// Get list of included/excluded words
+    /// </summary>
+    /// <param name="include"></param>
+    /// <returns></returns>
     [HttpGet("List", Name = "GetList")]
     public async Task<IActionResult> GetList(bool include = true)
     {
@@ -88,11 +94,12 @@ public class WordsController : ControllerBase
     /// Lookup word or part of word in all dictionaries
     /// </summary>
     /// <param name="word"></param>
+    /// <param name="exactMatch">Exact or wild card</param>
     /// <returns></returns>
     [HttpGet("LookupWord")]
-    public async Task<IActionResult> LookupWord(string word)
+    public async Task<IActionResult> LookupWord(string word, bool exactMatch = false)
     {
-        var query = new LookupWordQuery(word);
+        var query = new LookupWordQuery(word, exactMatch);
         var handler = new LookupWordQueryHandler();
         var res = await handler.Handle(query, CancellationToken.None);
         return Ok(res);

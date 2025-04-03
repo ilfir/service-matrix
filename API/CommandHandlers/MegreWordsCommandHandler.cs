@@ -4,8 +4,17 @@ using service_matrix.Helpers;
 
 namespace service_matrix.CommandHandlers;
 
+/// <summary>
+/// Merge words processing
+/// </summary>
 public class MergeWordsCommandHandler
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="cmd"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<MergeResponse> Handle(MergeWordsCommand cmd, CancellationToken cancellationToken)
     {
         var removedCounter = 0;

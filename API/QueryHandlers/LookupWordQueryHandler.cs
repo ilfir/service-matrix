@@ -4,8 +4,18 @@ using service_matrix.Queries;
 
 namespace service_matrix.QueryHandlers;
 
+/// <summary>
+/// 
+/// </summary>
 public class LookupWordQueryHandler
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public async Task<List<LookupResultResponseItem>> Handle(LookupWordQuery query, CancellationToken cancellationToken)
     {
         var result = new List<LookupResultResponseItem>();
