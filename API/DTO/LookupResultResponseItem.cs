@@ -5,7 +5,7 @@ namespace service_matrix.DTO;
 /// </summary>
 /// <param name="Word"></param>
 /// <param name="Location"></param>
-public record LookupResultResponseItem(string Word, WordLocation Location);
+public record LookupResultResponseItem(string Word, string Location);
 
 /// <summary>
 /// 

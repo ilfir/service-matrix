@@ -23,72 +23,40 @@ public class LookupWordQueryHandler
         try
         {
             if (query.Word == null || query.Word.Length < 4) throw new Exception("At least 4 chars required");
-            var dictionaryList = FileHelper.ReadFileAsync("resources", "definitions.txt");
-            var mergedList = FileHelper.ReadFileAsync("resources", "merged.txt");
-            var includedList = FileHelper.ReadFileAsync("data", "include.txt");
-            var excludedList = FileHelper.ReadFileAsync("data", "exclude.txt");
-
-            var searchWord = query.Word.ToLower().Trim();
-            foreach (var word in dictionaryList)
-            {
-                if (word.Contains(searchWord))
-                {
-                    result.Add(new LookupResultResponseItem(word, WordLocation.Dictionary));
-                }
-                
-                if (result.Count() > 100)
-                {
-                    throw new Exception("Too many results, narrow your search");
-                }
-            }
-
-            foreach (var word in mergedList)
-            {
-                if (word.Contains(searchWord))
-                {
-                    result.Add(new LookupResultResponseItem(word, WordLocation.Merged));
-                }
-
-                if (result.Count() > 100)
-                {
-                    throw new Exception("Too many results, narrow your search");
-                }
-            }
-
-            foreach (var word in includedList)
-            {
-                if (word.Contains(searchWord))
-                {
-                    result.Add(new LookupResultResponseItem(word, WordLocation.Included));
-                }
-                
-                if (result.Count() > 100)
-                {
-                    throw new Exception("Too many results, narrow your search");
-                }
-                
-            }
-
-            foreach (var word in excludedList)
-            {
-                if (word.Contains(searchWord))
-                {
-                    result.Add(new LookupResultResponseItem(word, WordLocation.Excluded));
-                }
-                
-                if (result.Count() > 100)
-                {
-                    throw new Exception("Too many results, narrow your search");
-                }
-            }
-
+            
+            result.AddRange(FindWordInDictionary("resources", "definitions.txt", query, WordLocation.Dictionary));
+            result.AddRange(FindWordInDictionary("resources", "merged.txt", query, WordLocation.Merged));
+            result.AddRange(FindWordInDictionary("data", "include.txt", query, WordLocation.Included));
+            result.AddRange(FindWordInDictionary("data", "exclude.txt", query, WordLocation.Excluded));
+            
             return result;
         }
         catch (Exception e)
         {
             result.Clear();
-            result.Add(new LookupResultResponseItem(e.Message, WordLocation.Error));
+            result.Add(new LookupResultResponseItem(e.Message, WordLocation.Error.ToString()));
             return result;
         }
+    }
+
+    private IEnumerable<LookupResultResponseItem> FindWordInDictionary(string dir, string file, LookupWordQuery query, WordLocation loc)
+    {
+        var list = new List<LookupResultResponseItem>();
+        var dict = FileHelper.ReadFileAsync(dir, file);
+        var searchWord = query.Word.ToLower().Trim();
+        foreach (var word in dict)
+        {
+            if ((!query.ExactMatch && word.Contains(searchWord)) || string.Equals(searchWord, word))
+            {
+                list.Add(new LookupResultResponseItem(word, loc.ToString()));
+            }
+            
+            if (list.Count() > 100)
+            {
+                throw new Exception("Too many results, narrow your search");
+            }
+        }
+
+        return list;
     }
 }
