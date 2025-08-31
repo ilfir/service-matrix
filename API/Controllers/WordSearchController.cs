@@ -25,7 +25,7 @@ public class WordsController : ControllerBase
     {
         var handler = new WordSearchCommandHandler();
         var command = new WordSearchCommand(request.MaxLength, request.MinLength, request.MaxWords, request.LettersMatrix!);
-        var res = await handler.Handle(command, CancellationToken.None);
+        var res = await handler.HandleAsync(command, CancellationToken.None);
 
         return res;
     }
