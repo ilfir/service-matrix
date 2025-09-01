@@ -16,7 +16,7 @@ public class LookupWordQueryHandler
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<List<LookupResultResponseItem>> Handle(LookupWordQuery query, CancellationToken cancellationToken)
+    public Task<List<LookupResultResponseItem>> Handle(LookupWordQuery query, CancellationToken cancellationToken)
     {
         var result = new List<LookupResultResponseItem>();
 
@@ -29,13 +29,13 @@ public class LookupWordQueryHandler
             result.AddRange(FindWordInDictionary("data", "include.txt", query, WordLocation.Included));
             result.AddRange(FindWordInDictionary("data", "exclude.txt", query, WordLocation.Excluded));
             
-            return result;
+            return Task.FromResult(result);
         }
         catch (Exception e)
         {
             result.Clear();
             result.Add(new LookupResultResponseItem(e.Message, WordLocation.Error.ToString()));
-            return result;
+            return Task.FromResult(result);
         }
     }
 
