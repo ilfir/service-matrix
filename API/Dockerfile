@@ -18,4 +18,6 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 COPY resources/definitions.txt ./resources/definitions.txt
 COPY resources/merged.txt ./resources/merged.txt
+COPY data/include.txt ./data/include.txt
+COPY data/exclude.txt ./data/excludey.txt
 ENTRYPOINT ["dotnet", "service-matrix.dll"]
