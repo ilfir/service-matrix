@@ -15,11 +15,11 @@ public class WordSearchCommandHandler
     /// <returns></returns>
     public Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
     {
-        List<string> definitionWords = new List<string>();
-        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt").ToList();
-        var mergedDictionary = FileHelper.ReadFileAsync( "resources", "merged.txt").ToList();
-        dictionary.AddRange(mergedDictionary);
-        foreach (string line in dictionary)
+        var definitionWords = new HashSet<string>();
+        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt");
+        var mergedDictionary = FileHelper.ReadFileAsync( "resources", "merged.txt");
+        
+        foreach (string line in dictionary.Concat(mergedDictionary))
         {
             if(line.Length > command.MaxLength || line.Length < command.MinLength)
             {
@@ -66,7 +66,7 @@ public class WordSearchCommandHandler
         var foundWordsList = new Dictionary<string, Dictionary<int, Dictionary<string, string>>>();
         foreach (var definitionWord in definitionWords)
         {
-            if (foundWordsList.Keys.Contains(definitionWord) || !WordSearchHelper.IsAllLettersInMatrix(lettersMatrix2D, definitionWord))
+            if (foundWordsList.ContainsKey(definitionWord) || !WordSearchHelper.IsAllLettersInMatrix(lettersMatrix2D, definitionWord))
             {
                 continue;
             }
