@@ -311,11 +311,7 @@ namespace service_matrix.Helpers
         /// <param name="wholeWord"></param>
         /// <returns></returns>
         public static bool IsAllLettersInMatrix(String[,] matrix, String wholeWord) {
-            
-            List<char>? _allArrayLetters = new();
-            var word = wholeWord.ToCharArray();
-        
-            _allArrayLetters = new List<char>();
+            var _allArrayLetters = new HashSet<char>();
             for (int i = 0; i < matrix.GetLength(0); i++)
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
@@ -328,7 +324,7 @@ namespace service_matrix.Helpers
                 }
             }
             
-            foreach (var c in word)
+            foreach (var c in wholeWord)
             {
                 if (!_allArrayLetters.Contains(c)) {
                     return false;
@@ -344,17 +340,10 @@ namespace service_matrix.Helpers
         /// <returns></returns>
         public static IEnumerable<string> CleanWords(IEnumerable<string> input)
         {
-            var output = new List<string>();
-            foreach (var word in input)
-            {
-                if (word.Length < 8 || word.Length > 24 || word.Contains(' ') || word.Contains('-'))
-                {
-                    continue;
-                }
-                output.Add(word);
-            }
-            output = output.OrderByDescending(word => word.Length).ToList();
-            return output;
+            return input
+                .Where(word => word.Length is >= 8 and <= 24 && !word.Contains(' ') && !word.Contains('-'))
+                .OrderByDescending(word => word.Length)
+                .ToList();
         }
     }
 }

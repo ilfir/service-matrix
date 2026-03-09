@@ -21,9 +21,9 @@ public class MergeWordsCommandHandler
         
         var includes = FileHelper.ReadFileAsync("data", "include.txt").ToList();
         // var excludes = FileHelper.ReadFileAsync("data", "exclude.txt").ToList();
-        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt").ToList();
-        var merged = FileHelper.ReadFileAsync( "resources", "merged.txt").ToList();
-        dictionary.AddRange(merged);
+        var dictionary = FileHelper.ReadFileAsync("resources", "definitions.txt").ToHashSet();
+        var merged = FileHelper.ReadFileAsync("resources", "merged.txt");
+        dictionary.UnionWith(merged);
         
         var mergedList = new List<string>();
         foreach (var include in includes)
