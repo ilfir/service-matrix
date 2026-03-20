@@ -10,11 +10,11 @@ namespace service_matrix.CommandHandlers;
 public class MergeWordsCommandHandler
 {
     /// <summary>
-    /// 
+    /// Handle merge command
     /// </summary>
-    /// <param name="cmd"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cmd">The merge command</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Merge response with counts</returns>
     public async Task<MergeResponse> Handle(MergeWordsCommand cmd, CancellationToken cancellationToken)
     {
         var removedCounter = 0;
@@ -37,6 +37,10 @@ public class MergeWordsCommandHandler
             if (!dictionary.Contains(includeFormatted))
             {
                 mergedList.Add(includeFormatted);
+            }
+            else
+            {
+                removedCounter++; // IMP-010: Track words that were already in dictionary
             }
         }
         includes = includes.Except(mergedList).ToList();
