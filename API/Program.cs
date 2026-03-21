@@ -1,10 +1,13 @@
 using System.Reflection;
 using Microsoft.OpenApi;
+using service_matrix.CommandHandlers;
+using service_matrix.Helpers;
+using service_matrix.Options;
+using service_matrix.QueryHandlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
@@ -12,6 +15,18 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// Configure Paths options
+builder.Services.Configure<PathsOptions>(builder.Configuration.GetSection("Paths"));
+
+// Register command handlers
+builder.Services.AddScoped<FileHelper>();
+builder.Services.AddScoped<WordSearchCommandHandler>();
+builder.Services.AddScoped<UpdateWordsCommandHandler>();
+builder.Services.AddScoped<MergeWordsCommandHandler>();
+builder.Services.AddScoped<GetWordsQueryHandler>();
+builder.Services.AddScoped<LookupWordQueryHandler>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -35,8 +50,6 @@ app.UseSwaggerUI(c =>
 
 // Enable CORS
 app.UseCors("AllowAllOrigins");
-
- 
 
 app.UseAuthorization();
 

@@ -15,6 +15,37 @@ namespace service_matrix.Controllers;
 [Route("[controller]")]
 public class WordsController : ControllerBase
 {
+    private readonly WordSearchCommandHandler _wordSearchCommandHandler;
+    private readonly UpdateWordsCommandHandler _updateWordsCommandHandler;
+    private readonly MergeWordsCommandHandler _mergeWordsCommandHandler;
+    private readonly GetWordsQueryHandler _getWordsQueryHandler;
+    private readonly LookupWordQueryHandler _lookupWordQueryHandler;
+    private readonly FileHelper _fileHelper;
+
+    /// <summary>
+    /// WordsController
+    /// </summary>
+    /// <param name="wordSearchCommandHandler"></param>
+    /// <param name="updateWordsCommandHandler"></param>
+    /// <param name="mergeWordsCommandHandler"></param>
+    /// <param name="getWordsQueryHandler"></param>
+    /// <param name="lookupWordQueryHandler"></param>
+    /// <param name="fileHelper"></param>
+    public WordsController(WordSearchCommandHandler wordSearchCommandHandler,
+        UpdateWordsCommandHandler updateWordsCommandHandler, 
+        MergeWordsCommandHandler mergeWordsCommandHandler, 
+        GetWordsQueryHandler getWordsQueryHandler, 
+        LookupWordQueryHandler lookupWordQueryHandler,
+        FileHelper fileHelper)
+    {
+        _wordSearchCommandHandler = wordSearchCommandHandler;
+        _updateWordsCommandHandler = updateWordsCommandHandler;
+        _mergeWordsCommandHandler = mergeWordsCommandHandler;
+        _getWordsQueryHandler = getWordsQueryHandler;
+        _lookupWordQueryHandler = lookupWordQueryHandler;
+        _fileHelper = fileHelper;
+    }
+
     /// <summary>
     /// Run Word search for given matrix
     /// </summary>
@@ -23,13 +54,12 @@ public class WordsController : ControllerBase
     [HttpPost("Search", Name = "Search")]
     public async Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Search(SearchRequest request)
     {
-        var handler = new WordSearchCommandHandler();
         var command = new WordSearchCommand(request.MaxLength, request.MinLength, request.MaxWords, request.LettersMatrix!);
-        var res = await handler.Handle(command, CancellationToken.None);
+        var res = await _wordSearchCommandHandler.Handle(command, CancellationToken.None);
 
         return res;
     }
-
+    
     /// <summary>
     /// Accept list of words and flag to
     /// include or exclude them from the search
@@ -39,10 +69,8 @@ public class WordsController : ControllerBase
     [HttpPost("Update", Name = "Update")]
     public async Task<IActionResult> Update(UpdateWordsRequest request)
     {
-        var handler = new UpdateWordsCommandHandler();
         var command = new UpdateWordsCommand(request.Words, request.Include);
-        var res = await handler.Handle(command, CancellationToken.None);
-
+        var res = await _updateWordsCommandHandler.Handle(command, CancellationToken.None);
         return Ok(res);
     }
     
@@ -54,14 +82,12 @@ public class WordsController : ControllerBase
     [HttpGet("List", Name = "GetList")]
     public async Task<IActionResult> GetList(bool include = true)
     {
-        var handler = new GetWordsQueryHandler(); // Handler for retrieving words
         var query = new GetWordsQuery(include); // Query object with the 'include' flag
-        var res = await handler.Handle(query, CancellationToken.None); // Process query via handler
+        var res = await _getWordsQueryHandler.Handle(query, CancellationToken.None); // Process query via handler
 
         return Ok(res); // Return results as HTTP 200 response
 
     }
-    
     /// <summary>
     /// Merge dictionary words with the include and exclude lists
     /// </summary>
@@ -69,9 +95,8 @@ public class WordsController : ControllerBase
     [HttpPost("Merge")]
     public async Task<IActionResult> MergeWords()
     {
-        var handler = new MergeWordsCommandHandler();
-        var res = await handler.Handle(new MergeWordsCommand(), CancellationToken.None);
-        
+        var res = await _mergeWordsCommandHandler.Handle(new MergeWordsCommand(), CancellationToken.None);
+
         // Return the count of new words added
         return Ok(res);
     }
@@ -83,10 +108,10 @@ public class WordsController : ControllerBase
     [HttpGet("CleanMerge")]
     public async Task<IActionResult> CleanMerge()
     {
-        var input = FileHelper.ReadFileAsync("resources", "merged.txt");
+        var input = await _fileHelper.ReadFileAsync("MergedFilePath");
         var output = WordSearchHelper.CleanWords(input);
-        await FileHelper.WriteFileNewContents(output, "data", "merged_cleaned.txt");
-            
+        await _fileHelper.WriteFileNewContents(output, "MergedCleanedFilePath");
+
         return Ok("BEFORE: " + input.Count() + " AFTER: " + output.Count());
     }
 
@@ -100,9 +125,8 @@ public class WordsController : ControllerBase
     public async Task<IActionResult> LookupWord(string word, bool exactMatch = false)
     {
         var query = new LookupWordQuery(word, exactMatch);
-        var handler = new LookupWordQueryHandler();
-        var res = await handler.Handle(query, CancellationToken.None);
+        var res = await _lookupWordQueryHandler.Handle(query, CancellationToken.None);
         return Ok(res);
     }
-    
+
 }

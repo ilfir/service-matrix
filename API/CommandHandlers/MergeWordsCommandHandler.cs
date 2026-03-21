@@ -9,6 +9,17 @@ namespace service_matrix.CommandHandlers;
 /// </summary>
 public class MergeWordsCommandHandler
 {
+    private readonly FileHelper _fileHelper;
+
+    /// <summary>
+    /// MergeWordsCommandHandler
+    /// </summary>
+    /// <param name="fileHelper"></param>
+    public MergeWordsCommandHandler(FileHelper fileHelper)
+    {
+        _fileHelper = fileHelper;
+    }
+
     /// <summary>
     /// Handle merge command
     /// </summary>
@@ -19,10 +30,10 @@ public class MergeWordsCommandHandler
     {
         var removedCounter = 0;
         
-        var includes = FileHelper.ReadFileAsync("data", "include.txt").ToList();
+        var includes = (await _fileHelper.ReadFileAsync("IncludeFilePath")).ToList();
         // var excludes = FileHelper.ReadFileAsync("data", "exclude.txt").ToList();
-        var dictionary = FileHelper.ReadFileAsync("resources", "definitions.txt").ToHashSet();
-        var merged = FileHelper.ReadFileAsync("resources", "merged.txt");
+        var dictionary = (await _fileHelper.ReadFileAsync("DefinitionsFilePath")).ToHashSet();
+        var merged = await _fileHelper.ReadFileAsync("MergedFilePath");
         dictionary.UnionWith(merged);
         
         var mergedList = new List<string>();
@@ -46,8 +57,8 @@ public class MergeWordsCommandHandler
         includes = includes.Except(mergedList).ToList();
         
         //Save all files
-        await FileHelper.WriteFileNewContents(mergedList, "data", "mergeable_definitions.txt");
-        await FileHelper.WriteFileNewContents(includes, "data", "include.txt");
+        await _fileHelper.WriteFileNewContents(mergedList, "data/mergeable_definitions.txt");
+        await _fileHelper.WriteFileNewContents(includes, "IncludeFilePath");
         
         var res = new MergeResponse(mergedList.Count, removedCounter);
         return res;

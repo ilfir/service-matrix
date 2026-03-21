@@ -8,6 +8,17 @@ namespace service_matrix.CommandHandlers;
 /// </summary>
 public class UpdateWordsCommandHandler
 {
+    private readonly FileHelper _fileHelper;
+
+    /// <summary>
+    /// UpdateWordsCommandHandler
+    /// </summary>
+    /// <param name="fileHelper"></param>
+    public UpdateWordsCommandHandler(FileHelper fileHelper)
+    {
+        _fileHelper = fileHelper;
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -24,7 +35,7 @@ public class UpdateWordsCommandHandler
 
         // Read All lines
         var fileName = !command.Include ? "exclude.txt" : "include.txt";
-        var existingWords = FileHelper.ReadFileAsync("data", fileName);
+        var existingWords = await _fileHelper.ReadFileAsync("data/" + fileName);
         
         // Determine which words need to be added
         var newWords = command.Words
@@ -41,7 +52,7 @@ public class UpdateWordsCommandHandler
         }
         
         // Save contents
-        await FileHelper.WriteFileAppend(trimmedLoweredList, "data", fileName);
+        await _fileHelper.WriteFileAppend(trimmedLoweredList, "data/" + fileName);
         return trimmedLoweredList.Count;
     }
 }

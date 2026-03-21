@@ -1,57 +1,86 @@
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using service_matrix.Options;
+
 namespace service_matrix.Helpers;
 
 /// <summary>
-/// 
+/// File Helper
 /// </summary>
-public static class FileHelper
+public class FileHelper
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="directory"></param>
-    /// <param name="fileName"></param>
-    /// <returns></returns>
-    public static IEnumerable<string> ReadFileAsync(string directory, string fileName )
-    {
-        string filePath = Path.Combine(AppContext.BaseDirectory,directory, fileName);
-        if (!File.Exists(filePath))
-        {
-            filePath = Path.Combine(directory, fileName);
-        }
+    private readonly PathsOptions _pathsOptions;
 
-        return File.ReadLines(filePath);
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileHelper"/> class.
+    /// </summary>
+    /// <param name="pathsOptions">The paths options.</param>
+    public FileHelper(IOptions<PathsOptions> pathsOptions)
+    {
+        _pathsOptions = pathsOptions.Value;
     }
 
     /// <summary>
-    /// 
+    /// Reads a file asynchronously.
     /// </summary>
-    /// <param name="newContents"></param>
-    /// <param name="directory"></param>
-    /// <param name="fileName"></param>
-    public static async Task WriteFileNewContents(IEnumerable<string> newContents, string directory, string fileName)
+    /// <param name="pathKeyOrPath">The path key or full path.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task<IEnumerable<string>> ReadFileAsync(string pathKeyOrPath)
     {
-        string filePath = Path.Combine(AppContext.BaseDirectory, directory, fileName);
-        if (!File.Exists(filePath))
+        string path;
+        if (pathKeyOrPath.Contains('/'))
         {
-            filePath = Path.Combine(directory, fileName);
+            path = pathKeyOrPath;
         }
-
-        await File.WriteAllLinesAsync(filePath, newContents);
+        else
+        {
+            path = _pathsOptions.GetType().GetProperty(pathKeyOrPath)?.GetValue(_pathsOptions, null) as string ?? throw new InvalidOperationException("Path configuration not found");
+        }
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException($"File not found at path: {path}");
+        }
+        return await File.ReadAllLinesAsync(path);
     }
     
     /// <summary>
-    /// 
+    /// Writes new contents to a file asynchronously.
     /// </summary>
-    /// <param name="newContents"></param>
-    /// <param name="directory"></param>
-    /// <param name="fileName"></param>
-    public static async Task WriteFileAppend(IEnumerable<string> newContents, string directory, string fileName)
+    /// <param name="contents">The contents.</param>
+    /// <param name="pathKeyOrPath">The path key or full path.</param>
+    public async Task WriteFileNewContents(IEnumerable<string> contents, string pathKeyOrPath)
     {
-        string filePath = Path.Combine(AppContext.BaseDirectory, directory, fileName);
-        if (!File.Exists(filePath))
+        string path;
+        if (pathKeyOrPath.Contains('/'))
         {
-            filePath = Path.Combine(directory, fileName);
+            path = pathKeyOrPath;
         }
-        await File.AppendAllLinesAsync(filePath, newContents);
+        else
+        {
+            path = _pathsOptions.GetType().GetProperty(pathKeyOrPath)?.GetValue(_pathsOptions, null) as string ?? throw new InvalidOperationException("Path configuration not found");
+        }
+        await File.WriteAllLinesAsync(path, contents);
+    }
+
+    /// <summary>
+    /// Writes contents to a file asynchronously, appending to the existing contents if the file already exists.
+    /// </summary>
+    /// <param name="contents">The contents.</param>
+    /// <param name="pathKeyOrPath">The path key or full path.</param>
+    public async Task WriteFileAppend(IEnumerable<string> contents, string pathKeyOrPath)
+    {
+        string path;
+        if (pathKeyOrPath.Contains('/'))
+        {
+            path = pathKeyOrPath;
+        }
+        else
+        {
+            path = _pathsOptions.GetType().GetProperty(pathKeyOrPath)?.GetValue(_pathsOptions, null) as string ?? throw new InvalidOperationException("Path configuration not found");
+        }
+        await File.AppendAllLinesAsync(path, contents);
     }
 }

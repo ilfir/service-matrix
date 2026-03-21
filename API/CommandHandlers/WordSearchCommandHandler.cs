@@ -7,17 +7,28 @@ namespace service_matrix.CommandHandlers;
 /// </summary>
 public class WordSearchCommandHandler
 {
+    private readonly FileHelper _fileHelper;
+
+    /// <summary>
+    /// WordSearchCommandHandler
+    /// </summary>
+    /// <param name="fileHelper"></param>
+    public WordSearchCommandHandler(FileHelper fileHelper)
+    {
+        _fileHelper = fileHelper;
+    }
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="command"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
+    public async Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Handle(WordSearchCommand command, CancellationToken cancellationToken)
     {
         var definitionWords = new HashSet<string>();
-        var dictionary = FileHelper.ReadFileAsync( "resources", "definitions.txt");
-        var mergedDictionary = FileHelper.ReadFileAsync( "resources", "merged.txt");
+        var dictionary = await _fileHelper.ReadFileAsync( "DefinitionsFilePath");
+        var mergedDictionary = await _fileHelper.ReadFileAsync( "MergedFilePath");
         
         foreach (string line in dictionary.Concat(mergedDictionary))
         {
@@ -28,7 +39,7 @@ public class WordSearchCommandHandler
             definitionWords.Add(line);
         }
        
-        var includes = FileHelper.ReadFileAsync( "data", "include.txt");
+        var includes = await _fileHelper.ReadFileAsync( "IncludeFilePath");
         foreach (string line in includes)
         {
             if (line.Length > 25)
@@ -42,7 +53,7 @@ public class WordSearchCommandHandler
             }
             definitionWords.Add(line);
         }
-        var excludes = FileHelper.ReadFileAsync( "data", "exclude.txt");
+        var excludes = await _fileHelper.ReadFileAsync( "ExcludeFilePath");
         foreach (string line in excludes)
         {
             if(line.Length > command.MaxLength || line.Length < command.MinLength)
@@ -89,6 +100,6 @@ public class WordSearchCommandHandler
             .Take(command.MaxWords) 
             .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        return Task.FromResult(topResults);
+        return await Task.FromResult(topResults);
     }
 }
