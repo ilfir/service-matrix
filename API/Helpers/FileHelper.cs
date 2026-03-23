@@ -19,6 +19,11 @@ public static class FileHelper
             filePath = Path.Combine(directory, fileName);
         }
 
+        if (!File.Exists(filePath))
+        {
+            return Array.Empty<string>();
+        }
+
         return File.ReadLines(filePath);
     }
 
