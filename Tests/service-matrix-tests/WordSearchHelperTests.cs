@@ -104,14 +104,14 @@ namespace service_matrix_tests
                 {"g", "h", "i", "b", "c"},
                 {"g", "h", "i", "b", "c"}
             };
-            var helper = new WordSearchHelper("ab", source);
-            string[] word = {"a", "b"};
+            var helper = new WordSearchHelper("abc", source);
+            string[] word = {"a", "b", "c"};
 
             // Act
-            var result = helper.IsNeighborToNextLetter(0, 0, word, 0, source);
+            var result = helper.IsNeighborToNextLetter(0, 0, word, 1, source);
 
             // Assert
-            Assert.True(result);
+            Assert.False(result);
         }
 
         [Fact]
