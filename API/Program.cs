@@ -12,6 +12,13 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// Register command and query handlers for DI
+builder.Services.AddScoped<service_matrix.CommandHandlers.WordSearchCommandHandler>();
+builder.Services.AddScoped<service_matrix.CommandHandlers.UpdateWordsCommandHandler>();
+builder.Services.AddScoped<service_matrix.QueryHandlers.GetWordsQueryHandler>();
+builder.Services.AddScoped<service_matrix.CommandHandlers.MergeWordsCommandHandler>();
+builder.Services.AddScoped<service_matrix.QueryHandlers.LookupWordQueryHandler>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

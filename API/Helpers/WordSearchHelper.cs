@@ -260,7 +260,7 @@ namespace service_matrix.Helpers
                 {
                     int neighborX = (iCurrentX + dX) - 2;
                     int neighborY = (iCurrentY + dY) - 2;
-                    if (!(neighborX == iCurrentX && neighborY == iCurrentY) && neighborX >= 0 && neighborX <= 4 && neighborY >= 0 && neighborY <= 4 && sNextLetter.Equals(arLettersLoc[neighborX, neighborY]))
+                    if (!(neighborX == iCurrentX && neighborY == iCurrentY) && neighborX >= 0 && neighborX <= 4 && neighborY >= 0 && neighborY <= 4 && sNextLetter.Equals(arLettersLoc[neighborX, neighborY], StringComparison.OrdinalIgnoreCase))
                     {
                         bool secondNextNeighbor = true;
                         if (arWord2.Length > iWordIndex + 2)
@@ -318,7 +318,7 @@ namespace service_matrix.Helpers
                 {
                     var charArray = matrix[i, j].ToCharArray();
                     if(charArray.Length > 0)
-                        _allArrayLetters.Add(charArray[0]);
+                        _allArrayLetters.Add(char.ToUpperInvariant(charArray[0]));
                     else
                         _allArrayLetters.Add('*');
                 }
@@ -326,7 +326,7 @@ namespace service_matrix.Helpers
             
             foreach (var c in wholeWord)
             {
-                if (!_allArrayLetters.Contains(c)) {
+                if (!_allArrayLetters.Contains(char.ToUpperInvariant(c))) {
                     return false;
                 }
             }

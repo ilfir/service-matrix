@@ -10,7 +10,7 @@ namespace service_matrix.CommandHandlers;
 public class MergeWordsCommandHandler
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="cmd"></param>
     /// <param name="cancellationToken"></param>
@@ -18,13 +18,13 @@ public class MergeWordsCommandHandler
     public async Task<MergeResponse> Handle(MergeWordsCommand cmd, CancellationToken cancellationToken)
     {
         var removedCounter = 0;
-        
+
         var includes = FileHelper.ReadFileAsync("data", "include.txt").ToList();
         // var excludes = FileHelper.ReadFileAsync("data", "exclude.txt").ToList();
         var dictionary = FileHelper.ReadFileAsync("resources", "definitions.txt").ToHashSet();
         var merged = FileHelper.ReadFileAsync("resources", "merged.txt");
         dictionary.UnionWith(merged);
-        
+
         var mergedList = new List<string>();
         foreach (var include in includes)
         {
@@ -40,13 +40,13 @@ public class MergeWordsCommandHandler
             }
         }
         includes = includes.Except(mergedList).ToList();
-        
+
         //Save all files
         await FileHelper.WriteFileNewContents(mergedList, "data", "mergeable_definitions.txt");
         await FileHelper.WriteFileNewContents(includes, "data", "include.txt");
-        
+
         var res = new MergeResponse(mergedList.Count, removedCounter);
         return res;
     }
-    
+
 }
