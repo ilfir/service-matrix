@@ -1,47 +1,60 @@
+using Microsoft.Extensions.Logging;
 using service_matrix.Commands;
+using service_matrix.DTO;
 using service_matrix.Helpers;
 
 namespace service_matrix.CommandHandlers;
 
 /// <summary>
-/// Update words with given list
+/// Handles updating words in include/exclude lists with proper logging.
 /// </summary>
 public class UpdateWordsCommandHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    private readonly ILogger<UpdateWordsCommandHandler> _logger;
+
+    public UpdateWordsCommandHandler(ILogger<UpdateWordsCommandHandler> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task<int> Handle(UpdateWordsCommand command, CancellationToken cancellationToken)
     {
-        // Example logic to update words
-        if (command.Words.Count == 0)
+        try
         {
-            return 0; // No words to update
+            _logger.LogInformation("Updating words. Count={Count} Include={Include}", command.Words.Count, command.Include);
+            if (command.Words.Count == 0)
+            {
+                _logger.LogInformation("No words provided to update.");
+                return 0;
+            }
+
+            var fileName = command.Include ? "include.txt" : "exclude.txt";
+            var existingWords = FileHelper.ReadFileAsync("data", fileName);
+
+            var newWords = command.Words
+                .Where(word => !existingWords.Contains(word, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            if (newWords.Count == 0)
+            {
+                _logger.LogInformation("No new words to add.");
+                return 0;
+            }
+
+            var trimmedLoweredList = new List<string>();
+            foreach (var newWord in newWords.Distinct())
+            {
+                trimmedLoweredList.Add(newWord.ToLower().Trim());
+            }
+
+            await FileHelper.WriteFileAppend(trimmedLoweredList, "data", fileName);
+            _logger.LogInformation("Added {Count} new words to {File}", trimmedLoweredList.Count, fileName);
+            return trimmedLoweredList.Count;
         }
-
-        // Read All lines
-        var fileName = !command.Include ? "exclude.txt" : "include.txt";
-        var existingWords = FileHelper.ReadFileAsync("data", fileName);
-        
-        // Determine which words need to be added
-        var newWords = command.Words
-            .Where(word => !existingWords.Contains(word, StringComparer.OrdinalIgnoreCase))
-            .ToList();
-        
-        if(newWords.Count == 0)
-            return 0;
-
-        var trimmedLoweredList = new List<string>();
-        foreach (var newWord in newWords.Distinct().ToList())
+        catch (Exception ex)
         {
-            trimmedLoweredList.Add(newWord.ToLower().Trim());
+            _logger.LogError(ex, "Error updating words.");
+            throw;
         }
-        
-        // Save contents
-        await FileHelper.WriteFileAppend(trimmedLoweredList, "data", fileName);
-        return trimmedLoweredList.Count;
     }
 }
