@@ -1,7 +1,13 @@
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Add services to the container.
 
@@ -42,8 +48,6 @@ app.UseSwaggerUI(c =>
 
 // Enable CORS
 app.UseCors("AllowAllOrigins");
-
- 
 
 app.UseAuthorization();
 

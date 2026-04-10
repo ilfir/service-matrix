@@ -1,0 +1,9 @@
+{
+    "continue.enableConsole": true,
+    "continue.enableQuickActions": true,
+    "continue.allowAnonymousTelemetry": false,
+    // How tools are approved:
+    // "automatic"  → runs tools without asking (full autonomy)
+    // "manual"     → asks you before every tool call
+    "continue.toolCallApproval": "automatic"
+}
