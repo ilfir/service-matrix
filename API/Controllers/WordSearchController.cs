@@ -11,24 +11,24 @@ namespace service_matrix.Controllers;
 /// <summary>
 /// 
 /// </summary>
-[ApiController]
-[Route("[controller]")]
-public class WordsController : ControllerBase
+ [ApiController]
+ [Route("words")]
+ public class WordSearchController : ControllerBase
 {
-    /// <summary>
-    /// Run Word search for given matrix
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost("Search", Name = "Search")]
-    public async Task<Dictionary<string, Dictionary<int, Dictionary<string, string>>>> Search(SearchRequest request)
-    {
+     /// <summary>
+     /// Run Word search for given matrix
+     /// </summary>
+     /// <param name="request"></param>
+     /// <returns></returns>
+     [HttpPost("Search", Name = "Search")]
+    public async Task<IActionResult> Search(SearchRequest request)
+     {
         var handler = new WordSearchCommandHandler();
         var command = new WordSearchCommand(request.MaxLength, request.MinLength, request.MaxWords, request.LettersMatrix!);
         var res = await handler.Handle(command, CancellationToken.None);
 
-        return res;
-    }
+        return Ok(res);
+     }
 
     /// <summary>
     /// Accept list of words and flag to

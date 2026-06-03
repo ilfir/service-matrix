@@ -8,23 +8,23 @@ namespace service_matrix_tests
     public class ControllerTests
     {
         [Fact]
-        public void WordsController_ShouldBeInstantiable()
-        {
-            // Arrange
-            // No arrangement needed
+        public void WordSearchController_ShouldBeInstantiable()
+         {
+             // Arrange
+              // No arrangement needed
 
-            // Act
-            var controller = new WordsController();
+              // Act
+             var controller = new WordSearchController();
 
             // Assert
             Assert.NotNull(controller);
         }
 
         [Fact]
-        public void WordsController_ShouldHaveCorrectRoute()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_ShouldHaveCorrectRoute()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check attributes
@@ -34,10 +34,10 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void WordsController_SearchMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_SearchMethod_ShouldExist()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check method exists
@@ -47,10 +47,10 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void WordsController_UpdateMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_UpdateMethod_ShouldExist()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check method exists
@@ -60,10 +60,10 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void WordsController_GetListMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_GetListMethod_ShouldExist()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check method exists
@@ -73,10 +73,10 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void WordsController_MergeWordsMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_MergeWordsMethod_ShouldExist()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check method exists
@@ -86,10 +86,10 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void WordsController_LookupWordMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+        public void WordSearchController_LookupWordMethod_ShouldExist()
+         {
+             // Arrange
+             var controller = new WordSearchController();
 
             // Act
             // No action needed, just check method exists
