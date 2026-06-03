@@ -109,8 +109,11 @@ This document tracks all improvements suggested for the Service Matrix project b
 ### 7. Testing Improvements 🧪 Priority: MEDIUM
 
 - [ ] **Add Integration Tests**
-  - Create integration tests for API endpoints
-  - Use TestServer for integration testing
+    - Use Microsoft.AspNetCore.TestHost (TestServer) as the primary testing framework
+    - Create in-memory test server to exercise full HTTP pipeline
+    - Establish baseline response tests for all 6 endpoints
+    - Verify backward compatibility of API responses (JSON structure, status codes)
+    - Test JSON structure consistency across changes using typed responses
 
 - [ ] **Add API Contract Tests**
   - Verify API response contracts with NSwag or similar
