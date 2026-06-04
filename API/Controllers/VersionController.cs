@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace service_matrix.Controllers;
 
@@ -9,17 +10,6 @@ namespace service_matrix.Controllers;
 [Route("version")]
 public class VersionController : ControllerBase
 {
-    /// <summary>
-    /// Returns the git SHA of the currently running build.
-    /// </summary>
-    /// <returns>A JSON object containing the git SHA.</returns>
-    [HttpGet("sha")]
-    public IActionResult GetSha()
-    {
-        var sha = ConfigurationService.GitSha;
-        return Ok(new { Sha = sha });
-    }
-
     /// <summary>
     /// Returns comprehensive version information.
     /// </summary>
@@ -41,5 +31,46 @@ public class VersionController : ControllerBase
 /// </summary>
 public static class ConfigurationService
 {
-    public const string GitSha = "7a4eada0f8a45b44fb4b493bc47c18b1d0dad201";
+    public static readonly string GitSha = ReadGitSha();
+
+    private static string ReadGitSha()
+    {
+        var shaFilePath = Path.Combine(AppContext.BaseDirectory, ".git-sha");
+        if (File.Exists(shaFilePath))
+        {
+            return File.ReadAllText(shaFilePath).Trim();
+        }
+        
+        // Fallback: try to get the current git SHA at runtime
+        try
+        {
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = "rev-parse HEAD",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            
+            using var process = Process.Start(processStartInfo);
+            if (process != null)
+             {
+                process.WaitForExit(5000);
+                if (!process.HasExited)
+                 {
+                    process.Kill();
+                 }
+                var sha = process.StandardOutput.ReadToEnd().Trim();
+                if (!string.IsNullOrEmpty(sha))
+                 return sha;
+             }
+          }
+        catch
+         {
+             // Ignore exceptions in non-production environments
+         }
+        
+        return "unknown";
+    }
 }

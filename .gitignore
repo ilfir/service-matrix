@@ -3,3 +3,4 @@ obj/
 bin/
 service-matrix.tar
 dataSources.xml
+*.git-sha
