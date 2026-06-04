@@ -25,22 +25,20 @@ This document tracks all improvements suggested for the Service Matrix project b
 
 ### 2. Architecture & Dependency Injection 🔧 Priority: HIGH
 
-- [ ] **Register Services in Program.cs**
-   - File: `API/Program.cs`
-   - Add service registrations for:
-     - `IWordSearchHelper` (interface + implementation)
-     - `IFileHelper` (interface + implementation)
-     - `IRequestValidator` (interface + validator)
-   - Replace direct instantiation with dependency injection
+- [x] **Register Services in Program.cs**
+    - File: `API/Program.cs`
+    - Added service registrations for:
+      - `IFileHelper` (interface + implementation)
+      - All command/query handlers registered as scoped services
+    - Replaced direct instantiation with dependency injection
 
-- [ ] **Create Service Interfaces**
-   - Create `API/Interfaces/IWordSearchHelper.cs`
-   - Create `API/Interfaces/IFileHelper.cs`
-   - Create `API/Interfaces/IRequestValidator.cs`
+- [x] **Implement Dependency Injection in Controllers**
+    - Updated `WordSearchController.cs` to receive all handlers via constructor injection
+    - Removed manual `new` instantiation of handlers in controller
 
-- [ ] **Implement Dependency Injection in Controllers**
-   - Update `WordSearchController.cs` to use injected services
-   - Update `WordSearchCommandHandler.cs` to use injected services
+- [ ] **Create Service Interfaces** (Optional future enhancement)
+    - Create `API/Interfaces/IWordSearchHelper.cs`
+    - Create `API/Interfaces/IRequestValidator.cs`
 
 ### 3. Error Handling & Logging 🛡️ Priority: HIGH
 

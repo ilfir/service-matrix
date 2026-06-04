@@ -26,15 +26,26 @@ public class WordSearchController : ControllerBase
      /// Constructor with dependency injection.
      /// </summary>
      /// <param name="fileHelper">The file helper service.</param>
-    public WordSearchController(IFileHelper fileHelper)
-    {
-        _fileHelper = fileHelper;
-        _wordSearchCommandHandler = new WordSearchCommandHandler(fileHelper);
-        _updateWordsCommandHandler = new UpdateWordsCommandHandler(fileHelper);
-        _mergeWordsCommandHandler = new MergeWordsCommandHandler(fileHelper);
-        _getWordsQueryHandler = new GetWordsQueryHandler(fileHelper);
-        _lookupWordQueryHandler = new LookupWordQueryHandler(fileHelper);
-    }
+     /// <param name="wordSearchCommandHandler">The word search command handler.</param>
+     /// <param name="updateWordsCommandHandler">The update words command handler.</param>
+     /// <param name="mergeWordsCommandHandler">The merge words command handler.</param>
+     /// <param name="getWordsQueryHandler">The get words query handler.</param>
+     /// <param name="lookupWordQueryHandler">The lookup word query handler.</param>
+    public WordSearchController(
+        IFileHelper fileHelper,
+        WordSearchCommandHandler wordSearchCommandHandler,
+        UpdateWordsCommandHandler updateWordsCommandHandler,
+        MergeWordsCommandHandler mergeWordsCommandHandler,
+        GetWordsQueryHandler getWordsQueryHandler,
+        LookupWordQueryHandler lookupWordQueryHandler)
+     {
+         _fileHelper = fileHelper;
+         _wordSearchCommandHandler = wordSearchCommandHandler;
+         _updateWordsCommandHandler = updateWordsCommandHandler;
+         _mergeWordsCommandHandler = mergeWordsCommandHandler;
+         _getWordsQueryHandler = getWordsQueryHandler;
+         _lookupWordQueryHandler = lookupWordQueryHandler;
+     }
 
     /// <summary>
      /// Run Word search for given matrix
