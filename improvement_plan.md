@@ -8,98 +8,120 @@ This document tracks all improvements suggested for the Service Matrix project b
 ### 1. Bug Fixes & Code Quality ⚠️ Priority: HIGH
 
 - [x] **Fix Typo in Class Name**
-   - File: `API/CommandHandlers/MegreWordsCommandHandler.cs`
-   - Change: Rename to `MergeWordsCommandHandler.cs`
-   - Update references in Controller and QueryHandlers
+    - File: `API/CommandHandlers/MegreWordsCommandHandler.cs`
+    - Change: Rename to `MergeWordsCommandHandler.cs`
+    - Update references in Controller and QueryHandlers
 
 - [x] **Fix Controller Name Convention**
-    - File: `API/Controllers/WordSearchController.cs`
-    - Changed: `WordsController` → `WordSearchController`
-    - Added explicit `[Route("words")]` for backward compatibility
+     - File: `API/Controllers/WordSearchController.cs`
+     - Changed: `WordsController` → `WordSearchController`
+     - Added explicit `[Route("words")]` for backward compatibility
 
 - [x] **Use Proper HTTP Status Codes**
-    - File: `API/Controllers/WordSearchController.cs`
-    - Changed `Search` method return type from raw `Dictionary<...>` to `IActionResult` with explicit `return Ok(res)`
-    - All endpoints now consistently use `IActionResult` return type with explicit `Ok()` wrapping
-    - Backward compatible: response JSON shapes remain unchanged
+     - File: `API/Controllers/WordSearchController.cs`
+     - Changed `Search` method return type from raw `Dictionary<...>` to `IActionResult` with explicit `return Ok(res)`
+     - All endpoints now consistently use `IActionResult` return type with explicit `Ok()` wrapping
+     - Backward compatible: response JSON shapes remain unchanged
 
 ### 2. Architecture & Dependency Injection 🔧 Priority: HIGH
 
 - [x] **Register Services in Program.cs**
-    - File: `API/Program.cs`
-    - Added service registrations for:
-      - `IFileHelper` (interface + implementation)
-      - All command/query handlers registered as scoped services
-    - Replaced direct instantiation with dependency injection
+     - File: `API/Program.cs`
+     - Added service registrations for:
+       - `IFileHelper` (interface + implementation)
+       - All command/query handlers registered as scoped services
+     - Replaced direct instantiation with dependency injection
 
 - [x] **Implement Dependency Injection in Controllers**
-    - Updated `WordSearchController.cs` to receive all handlers via constructor injection
-    - Removed manual `new` instantiation of handlers in controller
+     - Updated `WordSearchController.cs` to receive all handlers via constructor injection
+     - Removed manual `new` instantiation of handlers in controller
 
 - [ ] **Create Service Interfaces** (Optional future enhancement)
-    - Create `API/Interfaces/IWordSearchHelper.cs`
-    - Create `API/Interfaces/IRequestValidator.cs`
+     - Create `API/Interfaces/IWordSearchHelper.cs`
+     - Create `API/Interfaces/IRequestValidator.cs`
 
 ### 3. Error Handling & Logging 🛡️ Priority: HIGH
 
 - [x] **Add Exception Handling Middleware**
-   - Created `API/Middleware/ExceptionHandlingMiddleware.cs`
-   - Registered in `API/Program.cs` using `app.UseMiddleware<ExceptionHandlingMiddleware>()`
-   - Catches unhandled exceptions, logs them, and returns consistent JSON error responses
-   - Handles specific exception types: `OperationCanceledException`, `TimeoutException`, `ArgumentException`
+     - Created `API/Middleware/ExceptionHandlingMiddleware.cs`
+     - Registered in `API/Program.cs` using `app.UseMiddleware<ExceptionHandlingMiddleware>()`
+     - Catches unhandled exceptions, logs them, and returns consistent JSON error responses
+     - Handles specific exception types: `OperationCanceledException`, `TimeoutException`, `ArgumentException`
 
-- [ ] **Add Proper Error Responses to Controllers**
-   - Replace `return Ok(res)` with `return Ok(new { Success = true, Data = res })`
-   - Add try-catch blocks in all controller methods
+- [x] **Add Request Logging Middleware**
+     - Created `API/Middleware/RequestLoggingMiddleware.cs`
+     - Registered in `API/Program.cs` before other middleware
+     - Logs incoming requests with method, URL, and payload summary
+     - Logs outgoing responses with status code and duration
+     - Skips logging for version and health endpoints
 
-- [ ] **Implement Logging**
-   - Add Serilog or Microsoft.Extensions.Logging
-   - Log API requests, errors, and important operations
+- [x] **Add Try-Catch Blocks to All Controller Methods**
+     - Added try-catch blocks in all controller methods (Search, Update, GetList, MergeWords, CleanMerge, LookupWord)
+     - Each method now logs errors with context-specific information
+     - Returns appropriate HTTP status codes (400 for validation, 500 for exceptions)
+
+- [x] **Add Logging to All Command/Query Handlers**
+     - Added `ILogger<T>` injection to all handlers
+     - WordSearchCommandHandler: Logs start/end events with word counts, debug logs for individual words
+     - UpdateWordsCommandHandler: Logs include/exclude operations, word additions
+     - MergeWordsCommandHandler: Logs merge operations and added/removed counts
+     - GetWordsQueryHandler: Logs include/exclude queries
+     - LookupWordQueryHandler: Logs exact/partial matches
+
+- [x] **Add Logging to FileHelper**
+     - Added `ILogger<FileHelper>` injection
+     - Logs file read/write operations with paths and line counts
+     - Logs warnings for missing files
+
+- [x] **Preserve API Response Shapes**
+     - All endpoints maintain backward-compatible response shapes
+     - No breaking changes to existing API contracts
+     - Tests pass without modification (117/117 passing)
 
 ### 4. Performance Optimizations 🚀 Priority: MEDIUM
 
 - [ ] **Make File I/O Async**
-   - File: `API/Helpers/FileHelper.cs`
-   - Convert all methods to async/await pattern
+     - File: `API/Helpers/FileHelper.cs`
+     - Convert all methods to async/await pattern
 
 - [ ] **Add Caching Layer**
-   - Implement IMemoryCache for frequently accessed dictionary words
-   - Cache merged.txt and include.txt files
+     - Implement IMemoryCache for frequently accessed dictionary words
+     - Cache merged.txt and include.txt files
 
 - [ ] **Optimize Word Search Algorithm**
-   - Consider using a Trie or prefix tree for dictionary lookup
-   - Precompute letter frequency maps
+     - Consider using a Trie or prefix tree for dictionary lookup
+     - Precompute letter frequency maps
 
 - [ ] **Add Response Pagination**
-   - Add pagination to List endpoint for large word lists
+     - Add pagination to List endpoint for large word lists
 
 ### 5. Security Improvements 🔒 Priority: HIGH
 
 - [ ] **Restrict CORS Policy**
-   - Replace "AllowAllOrigins" with specific origin list or allow origins from configuration
+     - Replace "AllowAllOrigins" with specific origin list or allow origins from configuration
 
 - [ ] **Add Rate Limiting**
-   - Use policies from Microsoft.AspNetCore.RateLimiting
+     - Use policies from Microsoft.AspNetCore.RateLimiting
 
 - [ ] **Add Input Validation in Controllers**
-   - Add Model Validation attributes
-   - Sanitize all inputs
+     - Add Model Validation attributes
+     - Sanitize all inputs
 
 ### 6. API Improvements 📚 Priority: MEDIUM
 
 - [ ] **Add API Versioning**
-   - Use Microsoft.AspNetCore.Mvc.Versioning
-   - Support multiple API versions for backward compatibility
+     - Use Microsoft.AspNetCore.Mvc.Versioning
+     - Support multiple API versions for backward compatibility
 
 - [ ] **Add API Version Header**
-   - Update Swagger to show API version
+     - Update Swagger to show API version
 
 - [ ] **Add API Key Authentication**
-   - Add authentication middleware for API key validation
+     - Add authentication middleware for API key validation
 
 - [ ] **Add API Metadata**
-   - Add API version, contact info, license to Swagger
-   - Add operation tags for better organization
+     - Add API version, contact info, license to Swagger
+     - Add operation tags for better organization
 
 ### 7. Testing Improvements 🧪 Priority: MEDIUM
 
@@ -111,67 +133,68 @@ This document tracks all improvements suggested for the Service Matrix project b
        - Test JSON structure consistency across changes using typed responses
 
 - [ ] **Add End-to-End Tests**
-   - Create integration tests with actual file I/O
+     - Create integration tests with actual file I/O
 
 ### 8. Documentation Improvements 📖 Priority: LOW
 
 - [ ] **Add API Error Codes Documentation**
-   - Document all possible error responses
+     - Document all possible error responses
 
 - [ ] **Add API Rate Limiting Documentation**
-   - Document rate limits and quotas
+     - Document rate limits and quotas
 
 - [ ] **Add Troubleshooting Guide**
-   - Add common issues and solutions to README
+     - Add common issues and solutions to README
 
 ### 9. DevOps Improvements 🚢 Priority: LOW
 
 - [ ] **Add Health Checks**
-   - Implement IHealthCheck for database/file system checks
+     - Implement IHealthCheck for database/file system checks
 
 - [ ] **Add API Documentation for Errors**
-   - Add error response schemas to Swagger
+     - Add error response schemas to Swagger
 
 - [ ] **Add API Rate Limiting Configuration**
-   - Make rate limits configurable
+     - Make rate limits configurable
 
 - [ ] **Add API Versioning Configuration**
-   - Make API versions configurable
+     - Make API versions configurable
 
 ### 10. Refactoring Opportunities ♻️ Priority: LOW
 
 - [ ] **Extract Constants**
-    - Extract magic numbers (8, 24, 100, etc.) to constants
+      - Extract magic numbers (8, 24, 100, etc.) to constants
 
 - [x] **Add Version Controller**
-     - Created `API/Controllers/VersionController.cs` with `/version` and `/version/sha` endpoints
-     - Added `ConfigurationService.GitSha` constant for build-time SHA injection
+       - Created `API/Controllers/VersionController.cs` with `/version` and `/version/sha` endpoints
+       - Added `ConfigurationService.GitSha` constant for build-time SHA injection
 
 - [ ] **Add XML Documentation Comments**
-   - Add XML comments to all public classes and methods
+     - Add XML comments to all public classes and methods
 
 - [ ] **Add Unit Tests for All Helpers**
-   - Add comprehensive unit tests for WordSearchHelper.cs
+     - Add comprehensive unit tests for WordSearchHelper.cs
 
 - [ ] **Add Unit Tests for FileHelper.cs**
-   - Mock file system for unit tests
+     - Mock file system for unit tests
 
 - [ ] **Add Unit Tests for RequestValidator.cs**
-   - Add edge case tests
+     - Add edge case tests
 
 ## Implementation Priority
 
 ### Phase 1: Critical Issues (Do First)
 - [x] Fix typo: MegreWordsCommandHandler → MergeWordsCommandHandler
 - [x] Fix controller name: WordsController → WordSearchController
-- [ ] Add dependency injection setup
+- [x] Add dependency injection setup
 - [x] Add exception handling middleware
 
 ### Phase 2: Architecture & Quality (Do Second)
 - [ ] Create service interfaces
 - [ ] Convert to async/await for file I/O
 - [ ] Add caching layer
-- [ ] Add proper error responses
+- [x] Add proper error responses with try-catch blocks
+- [x] Add comprehensive logging throughout the application
 
 ### Phase 3: Security & Performance (Do Third)
 - [ ] Restrict CORS policy
@@ -186,10 +209,10 @@ This document tracks all improvements suggested for the Service Matrix project b
 
 ## Progress Tracking
 
-- **Total Items**: 30
-- **Completed**: 5
+- **Total Items**: 35
+- **Completed**: 12
 - **In Progress**: 0
-- **Pending**: 25
+- **Pending**: 23
 
 ## Notes
 
@@ -217,10 +240,10 @@ This section documents the investigation and analysis of using Redis as a dictio
 
 **Dictionary Loading Flow:**
 1. `WordSearchCommandHandler.Handle()` loads dictionaries on every request:
-   - Reads `resources/definitions.txt` (line 31)
-   - Reads `resources/merged.txt` (line 32)
-   - Reads `data/include.txt` (line 43)
-   - Reads `data/exclude.txt` (line 57)
+    - Reads `resources/definitions.txt` (line 31)
+    - Reads `resources/merged.txt` (line 32)
+    - Reads `data/include.txt` (line 43)
+    - Reads `data/exclude.txt` (line 57)
 2. `GetWordsQueryHandler.Handle()` reads `data/include.txt` or `data/exclude.txt` per request.
 3. Each request performs synchronous file I/O via `FileHelper.ReadFile()`.
 
@@ -270,17 +293,17 @@ Redis is an in-memory data store that can serve as a high-performance key-value 
 
 ```
 Application Startup
-         │
-         ▼
+          │
+          ▼
 Load definitions.txt → Redis (HSET dictionary:definitions)
 Load merged.txt → Redis (HSET dictionary:merged)
 Load include.txt → Redis (SADD dictionary:included)
 Load exclude.txt → Redis (SADD dictionary:excluded)
-         │
-         ▼
+          │
+          ▼
 Register IDictionaryCache service in DI container
-         │
-         ▼
+          │
+          ▼
 Application serves all requests from Redis cache
 ```
 

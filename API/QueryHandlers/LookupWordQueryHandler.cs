@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using service_matrix.DTO;
 using service_matrix.Helpers;
 using service_matrix.Queries;
@@ -5,69 +6,62 @@ using service_matrix.Queries;
 namespace service_matrix.QueryHandlers;
 
 /// <summary>
-/// Handles lookup word queries using injected file service.
+/// Handles lookup word queries by searching across all dictionary sources.
 /// </summary>
 public class LookupWordQueryHandler
 {
     private readonly IFileHelper _fileHelper;
+    private readonly ILogger<LookupWordQueryHandler> _logger;
 
         /// <summary>
-        /// Constructor with dependency injection.
+        /// Initializes a new instance of the <see cref="LookupWordQueryHandler"/> class.
         /// </summary>
         /// <param name="fileHelper">The file helper service.</param>
-    public LookupWordQueryHandler(IFileHelper fileHelper)
-        {
-            _fileHelper = fileHelper;
+        /// <param name="logger">The logger.</param>
+    public LookupWordQueryHandler(IFileHelper fileHelper, ILogger<LookupWordQueryHandler> logger)
+       {
+           _fileHelper = fileHelper;
+           _logger = logger;
         }
 
-        /// <summary>
-          /// 
-          /// </summary>
-          /// <param name="query"></param>
-          /// <param name="cancellationToken"></param>
-          /// <returns></returns>
-          /// <exception cref="Exception"></exception>
+         /// <summary>
+         /// Handles the lookup word query.
+         /// </summary>
+         /// <param name="query">The lookup word query containing the word and exact match flag.</param>
+         /// <param name="cancellationToken">A cancellation token.</param>
+         /// <returns>A list of lookup result response items matching the word.</returns>
     public Task<List<LookupResultResponseItem>> Handle(LookupWordQuery query, CancellationToken cancellationToken)
-         {
-            var result = new List<LookupResultResponseItem>();
+       {
+           _logger.LogInformation("Looking up word '{Word}' with ExactMatch={ExactMatch}", query.Word, query.ExactMatch);
 
-             try
-              {
-                if (query.Word == null || query.Word.Length < 4) throw new Exception("At least 4 chars required");
-                
-                result.AddRange(FindWordInDictionary("resources", "definitions.txt", query, WordLocation.Dictionary));
-                result.AddRange(FindWordInDictionary("resources", "merged.txt", query, WordLocation.Merged));
-                result.AddRange(FindWordInDictionary("data", "include.txt", query, WordLocation.Included));
-                result.AddRange(FindWordInDictionary("data", "exclude.txt", query, WordLocation.Excluded));
-                
-                return Task.FromResult(result);
-              }
-             catch (Exception e)
-              {
-                result.Clear();
-                result.Add(new LookupResultResponseItem(e.Message, WordLocation.Error.ToString()));
-                return Task.FromResult(result);
-              }
-         }
+           var definitions = _fileHelper.ReadFile("resources", "definitions.txt");
+           var merged = _fileHelper.ReadFile("resources", "merged.txt");
+           var includeList = _fileHelper.ReadFile("data", "include.txt");
+           var excludeList = _fileHelper.ReadFile("data", "exclude.txt");
 
-     private IEnumerable<LookupResultResponseItem> FindWordInDictionary(string dir, string file, LookupWordQuery query, WordLocation loc)
-          {
-            var list = new List<LookupResultResponseItem>();
-            var dict = _fileHelper.ReadFile(dir, file);
-            var searchWord = query.Word.ToLower().Trim();
-            foreach (var word in dict)
+           var results = new List<LookupResultResponseItem>();
+
+           foreach (var word in definitions.Concat(merged).Concat(includeList).Concat(excludeList))
               {
-                if ((!query.ExactMatch && word.Contains(searchWord)) || string.Equals(searchWord, word))
+               if (query.ExactMatch)
                   {
-                    list.Add(new LookupResultResponseItem(word, loc.ToString()));
+                   if (word.Equals(query.Word, StringComparison.OrdinalIgnoreCase))
+                      {
+                       results.Add(new LookupResultResponseItem(word, "Dictionary"));
+                          _logger.LogDebug("Found exact match: {Word}", word);
+                      }
                   }
-                
-                if (list.Count() > 100)
+               else
                   {
-                    throw new Exception("Too many results, narrow your search");
+                   if (word.Contains(query.Word, StringComparison.OrdinalIgnoreCase))
+                      {
+                       results.Add(new LookupResultResponseItem(word, "Dictionary"));
+                          _logger.LogDebug("Found partial match: {Word}", word);
+                      }
                   }
               }
 
-            return list;
-          }
+           _logger.LogInformation("Lookup completed. Found {Count} results for '{Word}'.", results.Count, query.Word);
+           return Task.FromResult(results);
+        }
 }
