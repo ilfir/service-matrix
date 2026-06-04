@@ -141,7 +141,11 @@ This document tracks all improvements suggested for the Service Matrix project b
 ### 10. Refactoring Opportunities ♻️ Priority: LOW
 
 - [ ] **Extract Constants**
-   - Extract magic numbers (8, 24, 100, etc.) to constants
+    - Extract magic numbers (8, 24, 100, etc.) to constants
+
+- [x] **Add Version Controller**
+     - Created `API/Controllers/VersionController.cs` with `/version` and `/version/sha` endpoints
+     - Added `ConfigurationService.GitSha` constant for build-time SHA injection
 
 - [ ] **Add XML Documentation Comments**
    - Add XML comments to all public classes and methods
