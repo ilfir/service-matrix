@@ -1,3 +1,4 @@
+using Moq;
 using service_matrix.Controllers;
 using service_matrix.DTO;
 using service_matrix.Helpers;
@@ -9,12 +10,12 @@ namespace service_matrix_tests
     {
         [Fact]
         public void WordSearchController_ShouldBeInstantiable()
-         {
-             // Arrange
-              // No arrangement needed
-
-              // Act
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            
+            // Act
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Assert
             Assert.NotNull(controller);
@@ -22,9 +23,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_ShouldHaveCorrectRoute()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check attributes
@@ -35,9 +37,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_SearchMethod_ShouldExist()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check method exists
@@ -48,9 +51,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_UpdateMethod_ShouldExist()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check method exists
@@ -61,9 +65,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_GetListMethod_ShouldExist()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check method exists
@@ -74,9 +79,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_MergeWordsMethod_ShouldExist()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check method exists
@@ -87,9 +93,10 @@ namespace service_matrix_tests
 
         [Fact]
         public void WordSearchController_LookupWordMethod_ShouldExist()
-         {
-             // Arrange
-             var controller = new WordSearchController();
+        {
+            // Arrange
+            var mockFileHelper = new Mock<IFileHelper>();
+            var controller = new WordSearchController(mockFileHelper.Object);
 
             // Act
             // No action needed, just check method exists
