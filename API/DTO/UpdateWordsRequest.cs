@@ -8,10 +8,9 @@ namespace service_matrix.DTO;
 public class UpdateWordsRequest
 {
      /// <summary>
-     /// List of words to include or exclude. Must contain at least one word.
+     /// List of words to include or exclude. Can be empty (returns 0 added words).
      /// </summary>
      [Required(ErrorMessage = "Words list is required.")]
-     [MinLength(1, ErrorMessage = "Words list must contain at least one word.")]
     public List<string> Words { get; set; } = new();
 
      /// <summary>
