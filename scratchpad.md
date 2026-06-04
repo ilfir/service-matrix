@@ -1,33 +1,41 @@
-# Scratchpad - Testing Improvements Task
+# Scratchpad - Exception Handling Middleware
 
 ## Objective
-Complete Phase 4 of the improvement plan: Testing Improvements
+Add exception handling middleware to the Service Matrix API
 
 ## Completed Work
 
-### 1. API Contract Tests (`Tests/service-matrix-tests/ContractTests.cs`)
-- Created 20 contract tests validating all 6 API endpoints
-- Tests verify response status codes, JSON structure, and field types
-- Covers Search, Update, List, Merge, CleanMerge, LookupWord endpoints
+### 1. Exception Handling Middleware (`API/Middleware/ExceptionHandlingMiddleware.cs`)
+- Created a comprehensive middleware class that:
+    - Catches all unhandled exceptions
+    - Logs errors using ILogger
+    - Returns consistent JSON ProblemDetails responses
+    - Handles specific exception types with appropriate HTTP status codes:
+      - `OperationCanceledException` → 404 Not Found
+      - `TimeoutException` → 408 Request Timeout
+      - `ArgumentException` → 400 Bad Request
+      - All other exceptions → 500 Internal Server Error
 
-### 2. Load/Performance Tests (`Tests/service-matrix-tests/LoadTests.cs`)
-- Created 13 load tests with performance benchmarks
-- Tests include:
-   - Repeated request performance (50-100 requests per endpoint)
-   - Concurrent request handling (20 concurrent search, 50 concurrent list)
-   - Full API cycle stress test
-   - WordSearchHelper performance benchmarks
+### 2. Middleware Registration (`API/Program.cs`)
+- Added `using service_matrix.Middleware;` import
+- Registered middleware using `app.UseMiddleware<ExceptionHandlingMiddleware>()`
+- Placed middleware before Swagger UI for proper error handling during development
 
-### 3. Test Results
-- **Total tests:** 111 (all passing)
-- **Previous baseline:** 71 tests
-- **New tests added:** 40+ (ContractTests + LoadTests)
+### 3. Middleware Tests (`Tests/service-matrix-tests/MiddlewareTests.cs`)
+- Created 6 integration tests validating all endpoints work correctly with the middleware
+- Tests verify that all endpoints return expected status codes and response formats
+
+### 4. improvement_plan.md Updated
+- Marked "Add Exception Handling Middleware" as completed in section 3
+- Updated Phase 1 to mark exception handling middleware as done
+- Updated progress tracking (5 completed, 25 pending)
 
 ## Files Modified/Created
-- `Tests/service-matrix-tests/ContractTests.cs` - NEW
-- `Tests/service-matrix-tests/LoadTests.cs` - NEW
-- `improvement_plan.md` - Updated to mark testing items as complete
+- `API/Middleware/ExceptionHandlingMiddleware.cs` - NEW
+- `API/Program.cs` - Modified (added middleware registration)
+- `Tests/service-matrix-tests/MiddlewareTests.cs` - NEW
+- `improvement_plan.md` - Updated to mark exception handling as complete
 
-## Notes
-- All time thresholds in LoadTests were set to 30 seconds to accommodate variable CI environments
-- xUnit1031 warnings about blocking task operations are acceptable for load tests (intentional blocking for stress testing)
+## Test Results
+- **Total tests:** 117 (all passing)
+- **Build:** Successful (21 warnings, 0 errors)

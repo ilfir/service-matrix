@@ -45,8 +45,10 @@ When the definition of done is met, keep the current contents of `scratchpad.md`
 
 Use `scratchpad.md` as working memory for interrupted or resumed tasks.
 
-- At the start of a new task, reset the contents of `scratchpad.md`.
-- During the task, record the current objective, key findings, files touched, commands run, test results, assumptions, blockers, and next steps.
+- At the start of each new task, clear `scratchpad.md` before doing other work.
+- After clearing it, write the current objective, initial assumptions, and first planned step.
+- During the task, update `scratchpad.md` whenever a substep is completed.
+- Each update should record what changed, key findings, files touched, commands run, test results, assumptions, blockers, and the next step.
 - Keep entries concise and factual.
 - If work is interrupted, the scratchpad should contain enough context for another agent to continue safely.
 - When the task is complete, leave the scratchpad contents intact for auditability and handoff context.
