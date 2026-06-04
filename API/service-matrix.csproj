@@ -9,6 +9,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Content Include=".git-sha">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
     </ItemGroup>
 
