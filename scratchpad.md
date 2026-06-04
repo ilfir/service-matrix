@@ -1,3 +1,34 @@
+# Task: Make File I/O Async
+
+## Objective
+Convert `FileHelper.ReadFile()` from synchronous to asynchronous (`ReadFileAsync()`) to prevent blocking the calling thread during file I/O operations.
+
+## Current State
+- `IFileHelper.ReadFile(string directory, string fileName)` returns `IEnumerable<string>` synchronously
+- `FileHelper` has one sync method (`ReadFile`) and two async methods (`WriteFileNewContents`, `WriteFileAppend`)
+- Static wrapper `ReadFileAsync` exists but is actually synchronous (misleading name)
+- Callers: `WordSearchCommandHandler.Handle()`, `GetWordsQueryHandler.Handle()`, `WordSearchController.CleanMerge()`
+
+## Plan
+1. Update `IFileHelper` interface to add async `ReadFileAsync` method
+2. Implement `ReadFileAsync` in `FileHelper` using `File.ReadLinesAsync` / `File.ReadAllLinesAsync`
+3. Update static wrapper `ReadFileAsync` to be truly async
+4. Update all callers:
+   - `WordSearchCommandHandler.Handle()` — already async, just await the calls
+   - `GetWordsQueryHandler.Handle()` — already returns Task, just await
+   - `WordSearchController.CleanMerge()` — already async, just await
+5. Keep sync `ReadFile` for backward compatibility (deprecated)
+6. Update tests in `FileHelperTests.cs`
+7. Build and run all tests
+
+## Files to Modify
+- `API/Interfaces/IFileHelper.cs`
+- `API/Helpers/FileHelper.cs`
+- `API/CommandHandlers/WordSearchCommandHandler.cs`
+- `API/QueryHandlers/GetWordsQueryHandler.cs`
+- `API/Controllers/WordSearchController.cs`
+- `Tests/service-matrix-tests/FileHelperTests.cs`
+
 # Scratchpad - Service Matrix: Fix Failing Test
 
 ## Current Status (6/4/2026)

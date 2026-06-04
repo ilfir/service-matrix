@@ -204,7 +204,7 @@ public class WordSearchController : ControllerBase
 
         try
         {
-            var input = _fileHelper.ReadFile("resources", "merged.txt");
+            var input = await _fileHelper.ReadFileAsync("resources", "merged.txt");
             var output = WordSearchHelper.CleanWords(input);
             await _fileHelper.WriteFileNewContents("data", "merged_cleaned.txt", output);
 

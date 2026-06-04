@@ -29,14 +29,14 @@ public class GetWordsQueryHandler
          /// <param name="query">The get words query containing the include flag.</param>
          /// <param name="cancellationToken">A cancellation token.</param>
          /// <returns>A list of words from the specified file.</returns>
-    public Task<IEnumerable<string>> Handle(GetWordsQuery query, CancellationToken cancellationToken)
+    public async Task<IEnumerable<string>> Handle(GetWordsQuery query, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Getting words with Include={Include}", query.Include);
 
              string fileName = query.Include ? "include.txt" : "exclude.txt";
-             var words = _fileHelper.ReadFile("data", fileName);
+             var words = await _fileHelper.ReadFileAsync("data", fileName);
 
               _logger.LogInformation("Retrieved {WordCount} words from {FileName}.", words.Count(), fileName);
-             return Task.FromResult(words);
+             return words;
         }
 }

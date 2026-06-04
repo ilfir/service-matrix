@@ -37,9 +37,9 @@ public class WordSearchCommandHandler
          var definitionWords = new HashSet<string>();
          
          _logger.LogDebug("Reading definitions.txt");
-         var dictionary = _fileHelper.ReadFile("resources", "definitions.txt");
+         var dictionary = await _fileHelper.ReadFileAsync("resources", "definitions.txt");
          _logger.LogDebug("Reading merged.txt");
-         var mergedDictionary = _fileHelper.ReadFile("resources", "merged.txt");
+         var mergedDictionary = await _fileHelper.ReadFileAsync("resources", "merged.txt");
          
          foreach (string line in dictionary.Concat(mergedDictionary))
             {
@@ -51,7 +51,7 @@ public class WordSearchCommandHandler
             }
         
          _logger.LogDebug("Reading include.txt");
-         var includes = _fileHelper.ReadFile("data", "include.txt");
+         var includes = await _fileHelper.ReadFileAsync("data", "include.txt");
          foreach (string line in includes)
             {
              if (line.Length > 25)
@@ -67,7 +67,7 @@ public class WordSearchCommandHandler
             }
         
          _logger.LogDebug("Reading exclude.txt");
-         var excludes = _fileHelper.ReadFile("data", "exclude.txt");
+         var excludes = await _fileHelper.ReadFileAsync("data", "exclude.txt");
          foreach (string line in excludes)
             {
              if(line.Length > command.MaxLength || line.Length < command.MinLength)
