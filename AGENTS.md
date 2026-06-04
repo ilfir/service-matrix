@@ -22,7 +22,12 @@ Service Matrix is an ASP.NET Core Web API using .NET 10.0. It provides word sear
 14. Preserve public API contracts, response shapes, and existing tests unless the user explicitly requests a breaking change.
 15. Keep controllers thin; put business logic in handlers, helpers, or services.
 16. Use existing .NET patterns in the repository before introducing new abstractions.
-17. At the end of work, summarize changed files, tests run, and any remaining risks or follow-up items.
+17. Do not invent project requirements, test results, or implementation details.
+18. If a command fails, report the failure and relevant output.
+19. When changing behavior, update tests in `Tests/service-matrix-tests`.
+20. When changing API behavior, verify expected status codes and JSON response shapes.
+21. At the end of work, summarize changed files, tests run, and any remaining risks or follow-up items.
+22. Keep `scratchpad.md` updated during work so another agent can recover context after an interruption.
 
 ## Definition of Done
 
@@ -32,6 +37,19 @@ A task is complete only when:
 - Relevant build or test checks have been run.
 - Any failed, skipped, or unavailable checks are reported clearly.
 - Remaining assumptions, risks, or follow-up items are called out.
+- `improvement_plan.md` has been updated to reflect completed work, changed priorities, new follow-up items, or a note that no plan update was needed.
+
+When the definition of done is met, keep the current contents of `scratchpad.md`. Do not clear it at the end of a completed task.
+
+## Scratchpad
+
+Use `scratchpad.md` as working memory for interrupted or resumed tasks.
+
+- At the start of a new task, reset the contents of `scratchpad.md`.
+- During the task, record the current objective, key findings, files touched, commands run, test results, assumptions, blockers, and next steps.
+- Keep entries concise and factual.
+- If work is interrupted, the scratchpad should contain enough context for another agent to continue safely.
+- When the task is complete, leave the scratchpad contents intact for auditability and handoff context.
 
 ## Project Notes
 
@@ -40,8 +58,7 @@ A task is complete only when:
 - Test project: `Tests/service-matrix-tests/service-matrix-tests.csproj`
 - Main controller: `API/Controllers/WordSearchController.cs`
 - Core word search logic: `API/Helpers/WordSearchHelper.cs`
-- File helper abstraction: `API/Interfaces/IFileHelper.cs`
-- File helper implementation: `API/Helpers/FileHelper.cs`
+- File helper: `API/Interfaces/IFileHelper.cs`, `API/Helpers/FileHelper.cs`
 - Project context: `PROJECT_CONTEXT.md`
 - Improvement tracking: `improvement_plan.md`
 
@@ -52,16 +69,3 @@ dotnet restore
 dotnet build service-matrix.sln
 dotnet test service-matrix.sln
 ```
-
-## Expected Behavior
-
-When working in this repository:
-
-- Prefer the existing code style and architecture.
-- Avoid unrelated refactors.
-- Do not invent project requirements.
-- Do not claim tests passed unless they were actually run.
-- If a command fails, report the failure and the relevant output.
-- If the request is ambiguous, pause and ask a concise clarifying question.
-- When changing behavior, update tests in `Tests/service-matrix-tests`.
-- When changing API behavior, verify the expected status codes and JSON response shapes.

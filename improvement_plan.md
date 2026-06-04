@@ -115,11 +115,6 @@ This document tracks all improvements suggested for the Service Matrix project b
       - Verify backward compatibility of API responses (JSON structure, status codes)
       - Test JSON structure consistency across changes using typed responses
 
-- [ ] **Add API Contract Tests**
-  - Verify API response contracts with NSwag or similar
-
-- [ ] **Add Load Testing**
-  - Create performance tests for high-volume scenarios
 
 - [ ] **Add End-to-End Tests**
   - Create integration tests with actual file I/O
@@ -214,4 +209,174 @@ This document tracks all improvements suggested for the Service Matrix project b
 - **Phase 3**: 12-16 hours
 - **Phase 4**: 8-12 hours22
 
-**Total Estimated Time**: 44-64 hours (5-8 days)
+**Total Estimated Time**: 44-64 hours (5-8 days)can
+
+## Redis Dictionary Source Investigation
+
+### Overview
+
+This section documents the investigation and analysis of using Redis as a dictionary source for the Service Matrix application. Currently, dictionaries are loaded from files (`resources/definitions.txt`, `resources/merged.txt`, `data/include.txt`, `data/exclude.txt`) on every word search request via `IFileHelper.ReadFile()`.
+
+### Current Architecture Analysis
+
+**Dictionary Loading Flow:**
+1. `WordSearchCommandHandler.Handle()` loads dictionaries on every request:
+   - Reads `resources/definitions.txt` (line 31)
+   - Reads `resources/merged.txt` (line 32)
+   - Reads `data/include.txt` (line 43)
+   - Reads `data/exclude.txt` (line 57)
+2. `GetWordsQueryHandler.Handle()` reads `data/include.txt` or `data/exclude.txt` per request.
+3. Each request performs synchronous file I/O via `FileHelper.ReadFile()`.
+
+**Current Performance Characteristics:**
+- File I/O is synchronous (blocking) for reads
+- Dictionary files are re-read on every single request
+- No caching layer exists between disk and application memory
+- Multiple dictionary sources must be read per request (4 files for word search)
+
+### Redis as Dictionary Source - Investigation
+
+**What is Redis?**
+Redis is an in-memory data store that can serve as a high-performance key-value store. It supports various data structures including strings, hashes, sets, and sorted sets. For dictionary storage, Redis would store dictionary entries as key-value pairs where the key is the word and the value is its definition or metadata.
+
+**How Redis Could Replace File-Based Dictionaries:**
+1. Dictionary files (`definitions.txt`, `merged.txt`) would be loaded into Redis at application startup.
+2. The `IFileHelper` interface could be extended or replaced with an `IDictionaryCache` service backed by Redis.
+3. Word lookups would query Redis in-memory instead of reading from disk.
+
+**Redis Data Model for Dictionaries:**
+- **Hash structure**: `HSET dictionary:definitions word definition`
+- **Set structure**: `SADD dictionary:words word1 word2 word3` (for fast membership testing)
+- **Sorted set**: `ZADD dictionary:excluded 0 word1 word2` (for exclusion lists)
+
+### Analysis: Loading Dictionaries Only Once at Startup
+
+**Benefits:**
+
+| Benefit | Description |
+|---------|-------------|
+| **Eliminated I/O Latency** | Removing file reads per request eliminates disk I/O overhead. Redis in-memory lookups are typically <1ms vs. 5-50ms for file reads. |
+| **Consistent Performance** | Response times become predictable and independent of disk load or file size changes. |
+| **Reduced CPU Usage** | No repeated file parsing, string splitting, or LINQ operations per request. |
+| **Scalability** | Redis can serve multiple service instances from a single cache layer. |
+| **Atomic Operations** | Redis provides atomic reads, preventing partial reads during updates. |
+
+**Drawbacks:**
+
+| Drawback | Mitigation |
+|----------|------------|
+| **Infrastructure Complexity** | Requires Redis server deployment and configuration. Use Docker Compose for local development. |
+| **Memory Footprint** | Dictionary data must fit in RAM. For typical dictionary files (few MBs), this is negligible. |
+| **Single Point of Failure** | Implement Redis Sentinel or use file-based fallback for resilience. |
+| **Cache Invalidation** | When dictionaries change, cache must be refreshed. Use Redis TTL or explicit invalidation. |
+
+**Startup-Only Loading Strategy:**
+
+```
+Application Startup
+        │
+        ▼
+Load definitions.txt → Redis (HSET dictionary:definitions)
+Load merged.txt → Redis (HSET dictionary:merged)
+Load include.txt → Redis (SADD dictionary:included)
+Load exclude.txt → Redis (SADD dictionary:excluded)
+        │
+        ▼
+Register IDictionaryCache service in DI container
+        │
+        ▼
+Application serves all requests from Redis cache
+```
+
+**Estimated Performance Improvement:**
+- Current per-request file I/O: ~10-50ms (4 files × read time)
+- Redis-backed lookup: ~0.5-2ms (single network round-trip)
+- **Improvement: 90-95% reduction in dictionary lookup latency**
+
+### Implementation Plan
+
+#### Phase R1: Redis Infrastructure Setup (Estimated: 4-6 hours)
+
+- [ ] **R1.1** Add `StackExchange.Redis` NuGet package to `service-matrix.csproj`
+- [ ] **R1.2** Create Redis connection configuration in `appsettings.json`:
+  ```json
+  {
+    "Redis": {
+      "ConnectionString": "localhost:6379",
+      "Database": 0,
+      "DefaultDb": "dictionaries"
+    }
+  }
+  ```
+- [ ] **R1.3** Create `RedisConnectionService` class implementing `IConnectionMultiplexer` wrapper
+- [ ] **R1.4** Add Redis Docker container to project (docker-compose.yml or Dockerfile)
+
+#### Phase R2: Dictionary Cache Service (Estimated: 6-8 hours)
+
+- [ ] **R2.1** Create `API/Interfaces/IDictionaryCache.cs`:
+  ```csharp
+  public interface IDictionaryCache
+  {
+      Task InitializeAsync();
+      Task<bool> ContainsWordAsync(string word);
+      Task<HashSet<string>> GetWordsAsync(string dictionaryName);
+      Task AddWordAsync(string dictionaryName, string word, string definition = null);
+      Task RemoveWordAsync(string dictionaryName, string word);
+  }
+  ```
+- [ ] **R2.2** Implement `API/Helpers/RedisDictionaryCache.cs` using StackExchange.Redis
+- [ ] **R2.3** Create seed script to load dictionary files into Redis at startup
+- [ ] **R2.4** Add graceful fallback to file-based loading if Redis is unavailable
+
+#### Phase R3: Integration with Existing Code (Estimated: 8-10 hours)
+
+- [ ] **R3.1** Update `API/Program.cs` to register `IDictionaryCache` in DI container
+- [ ] **R3.2** Modify `WordSearchCommandHandler` to use `IDictionaryCache` instead of file reads for definitions
+- [ ] **R3.3** Modify `GetWordsQueryHandler` to use `IDictionaryCache` for include/exclude lists
+- [ ] **R3.4** Add startup initialization task that loads all dictionaries into Redis before the app starts serving requests
+- [ ] **R3.5** Add health check endpoint `/health/redis` to verify Redis connectivity
+
+#### Phase R4: Testing & Validation (Estimated: 4-6 hours)
+
+- [ ] **R4.1** Add unit tests for `RedisDictionaryCache` with mock `IConnectionMultiplexer`
+- [ ] **R4.2** Add integration tests verifying word search works with Redis-backed dictionaries
+- [ ] **R4.3** Add load tests comparing file-based vs Redis-backed performance
+- [ ] **R4.4** Verify backward compatibility: API responses remain unchanged
+
+#### Phase R5: Operational Concerns (Estimated: 2-4 hours)
+
+- [ ] **R5.1** Add Redis configuration options to `appsettings.Development.json` and `appsettings.json`
+- [ ] **R5.2** Add logging for Redis initialization and cache misses
+- [ ] **R5.3** Document Redis setup in README.md
+- [ ] **R5.4** Add migration guide for deploying dictionary updates to Redis
+
+### Implementation Priority
+
+| Priority | Phase | Description |
+|----------|-------|-------------|
+| P1 (Critical) | R1 | Redis infrastructure setup - required foundation |
+| P2 (High) | R2 | Dictionary cache service - core abstraction |
+| P3 (High) | R3 | Integration with existing code - actual feature delivery |
+| P4 (Medium) | R4 | Testing & validation - quality assurance |
+| P5 (Low) | R5 | Operational concerns - deployment readiness |
+
+### Decision Matrix
+
+| Criteria | File-Based (Current) | Redis-Cache (Proposed) |
+|----------|---------------------|----------------------|
+| Lookup Latency | 10-50ms per file | <2ms per lookup |
+| Scalability | Single instance | Multi-instance shared |
+| Persistence | Native (disk) | In-memory + RDB/AOF |
+| Complexity | Low | Medium |
+| Infrastructure | None required | Redis server needed |
+| Memory Usage | Minimal | Dictionary size in RAM |
+| Update Mechanism | Edit file, restart | Redis commands + restart |
+
+### Recommended Next Steps
+
+1. **Start with Phase R1** - Set up Redis infrastructure and NuGet packages
+2. **Proceed to Phase R2** - Implement `IDictionaryCache` abstraction
+3. **Evaluate at Phase R3 boundary** - Determine if full Redis integration is worth the complexity for the current scale
+4. **Consider hybrid approach** - Keep file-based as fallback, add Redis as primary cache layer
+
+**Total Estimated Time for Redis Implementation: 24-34 hours (3-5 days)**
