@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.OpenApi;
+using service_matrix.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,15 +13,17 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<IFileHelper, FileHelper>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Service Matrix API", Version = "v1" });
-    // Include XML comments for Swagger
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+     // Include XML comments for Swagger
+     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+     c.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();
@@ -36,8 +39,7 @@ app.UseSwaggerUI(c =>
 // Enable CORS
 app.UseCors("AllowAllOrigins");
 
- 
-
+  
 app.UseAuthorization();
 
 app.MapControllers();
