@@ -155,7 +155,7 @@ public class IntegrationTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Update_PostEmptyWordsList_ReturnsOk()
+    public async Task Update_PostEmptyWordsList_ReturnsBadRequest()
     {
         // Arrange
         var requestBody = new { Words = new List<string>(), Include = true };
@@ -164,7 +164,7 @@ public class IntegrationTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.PostAsJsonAsync("/words/Update", requestBody);
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

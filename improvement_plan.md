@@ -103,9 +103,10 @@ This document tracks all improvements suggested for the Service Matrix project b
 - [ ] **Add Rate Limiting**
      - Use policies from Microsoft.AspNetCore.RateLimiting
 
-- [ ] **Add Input Validation in Controllers**
-     - Add Model Validation attributes
-     - Sanitize all inputs
+- [x] **Add Input Validation in Controllers**
+      - Added `[Required]`, `[Range]`, and `[MinLength]` DataAnnotations to `SearchRequest` and `UpdateWordsRequest` DTOs
+      - Controllers now check `ModelState.IsValid` at the start of Search and Update endpoints, returning 400 with validation error details
+      - Updated integration test `Update_PostEmptyWordsList_ReturnsOk` → `Update_PostEmptyWordsList_ReturnsBadRequest` to reflect new validation behavior
 
 ### 6. API Improvements 📚 Priority: MEDIUM
 
@@ -210,9 +211,9 @@ This document tracks all improvements suggested for the Service Matrix project b
 ## Progress Tracking
 
 - **Total Items**: 35
-- **Completed**: 12
+- **Completed**: 13
 - **In Progress**: 0
-- **Pending**: 23
+- **Pending**: 22
 
 ## Notes
 
