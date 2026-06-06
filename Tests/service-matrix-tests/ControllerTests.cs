@@ -25,7 +25,7 @@ namespace service_matrix_tests
 
          private static MergeWordsCommandHandler CreateMergeWordsCommandHandlerMock()
           {
-             var mock = new Mock<MergeWordsCommandHandler>(MockBehavior.Strict, null!, null!);
+             var mock = new Mock<MergeWordsCommandHandler>(MockBehavior.Strict, null!, null!, null!);
              return mock.Object;
           }
 

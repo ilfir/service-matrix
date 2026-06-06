@@ -20,6 +20,10 @@ builder.Services.AddControllers();
 // Register core services
 builder.Services.AddScoped<IFileHelper, FileHelper>();
 
+// Dictionary cache: loads all dictionary files once per request,
+// eliminating per-request file I/O in handlers.
+builder.Services.AddScoped<DictionaryCacheService>();
+
 // Register command handlers
 builder.Services.AddScoped<WordSearchCommandHandler>();
 builder.Services.AddScoped<UpdateWordsCommandHandler>();
@@ -34,7 +38,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Service Matrix API", Version = "v1" });
-      // Include XML comments for Swagger
+       // Include XML comments for Swagger
      var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
      var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
      c.IncludeXmlComments(xmlPath);
@@ -55,7 +59,7 @@ app.UseSwaggerUI(c =>
 // Enable CORS
 app.UseCors("AllowAllOrigins");
 
-  
+
 app.UseAuthorization();
 
 app.MapControllers();
