@@ -84,9 +84,12 @@ This document tracks all improvements suggested for the Service Matrix project b
      - File: `API/Helpers/FileHelper.cs`
      - Convert all methods to async/await pattern
 
-- [ ] **Add Caching Layer**
-     - Implement IMemoryCache for frequently accessed dictionary words
-     - Cache merged.txt and include.txt files
+- [x] **Add Caching Layer**
+       - Implemented `IMemoryCache` for frequently accessed dictionary words
+       - Cache merged.txt and include.txt files
+       - DictionaryCacheService changed from Scoped to Singleton lifetime
+       - All handlers now use cached dictionaries instead of per-request file reads
+       - GetFilteredDictionary() method added with exclude filtering and deduplication
 
 - [ ] **Optimize Word Search Algorithm**
      - Consider using a Trie or prefix tree for dictionary lookup

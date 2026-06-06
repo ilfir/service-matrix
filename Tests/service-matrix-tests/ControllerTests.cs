@@ -18,10 +18,10 @@ namespace service_matrix_tests
           }
 
          private static UpdateWordsCommandHandler CreateUpdateWordsCommandHandlerMock()
-          {
-             var mock = new Mock<UpdateWordsCommandHandler>(MockBehavior.Strict, null!, null!);
-             return mock.Object;
-          }
+            {
+              var mock = new Mock<UpdateWordsCommandHandler>(MockBehavior.Strict, null!, null!, null!);
+              return mock.Object;
+            }
 
          private static MergeWordsCommandHandler CreateMergeWordsCommandHandlerMock()
           {
@@ -30,10 +30,10 @@ namespace service_matrix_tests
           }
 
          private static GetWordsQueryHandler CreateGetWordsQueryHandlerMock()
-          {
-             var mock = new Mock<GetWordsQueryHandler>(MockBehavior.Strict, null!, null!);
-             return mock.Object;
-          }
+            {
+              var mock = new Mock<GetWordsQueryHandler>(MockBehavior.Strict, null!, null!, null!);
+              return mock.Object;
+            }
 
          private static LookupWordQueryHandler CreateLookupWordQueryHandlerMock()
           {

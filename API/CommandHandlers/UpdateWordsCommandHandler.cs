@@ -10,32 +10,35 @@ namespace service_matrix.CommandHandlers;
 public class UpdateWordsCommandHandler
 {
     private readonly IFileHelper _fileHelper;
+    private readonly DictionaryCacheService _dictionaryCache;
     private readonly ILogger<UpdateWordsCommandHandler> _logger;
 
-       /// <summary>
-       /// Initializes a new instance of the <see cref="UpdateWordsCommandHandler"/> class.
-       /// </summary>
-       /// <param name="fileHelper">The file helper service.</param>
-       /// <param name="logger">The logger.</param>
-    public UpdateWordsCommandHandler(IFileHelper fileHelper, ILogger<UpdateWordsCommandHandler> logger)
-       {
-          _fileHelper = fileHelper;
-          _logger = logger;
-       }
-
         /// <summary>
-        /// Handles the update words command.
+        /// Initializes a new instance of the <see cref="UpdateWordsCommandHandler"/> class.
         /// </summary>
-        /// <param name="command">The update words command containing words and include/exclude flag.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The count of words added (0 if all were duplicates).</returns>
+        /// <param name="fileHelper">The file helper service.</param>
+        /// <param name="dictionaryCache">The dictionary cache service.</param>
+        /// <param name="logger">The logger.</param>
+    public UpdateWordsCommandHandler(IFileHelper fileHelper, DictionaryCacheService dictionaryCache, ILogger<UpdateWordsCommandHandler> logger)
+        {
+           _fileHelper = fileHelper;
+           _dictionaryCache = dictionaryCache;
+           _logger = logger;
+        }
+
+         /// <summary>
+         /// Handles the update words command.
+         /// </summary>
+         /// <param name="command">The update words command containing words and include/exclude flag.</param>
+         /// <param name="cancellationToken">A cancellation token.</param>
+         /// <returns>The count of words added (0 if all were duplicates).</returns>
     public async Task<int> Handle(UpdateWordsCommand command, CancellationToken cancellationToken)
-       {
-          _logger.LogInformation("Processing update words command with {WordCount} words, Include={Include}",
+        {
+           _logger.LogInformation("Processing update words command with {WordCount} words, Include={Include}",
              command.Words.Count, command.Include);
 
-         var includeList = _fileHelper.ReadFile("data", "include.txt");
-         var excludeList = _fileHelper.ReadFile("data", "exclude.txt");
+          var includeList = _dictionaryCache.Include.ToList();
+          var excludeList = _dictionaryCache.Exclude.ToList();
 
          var updatedInclude = new List<string>(includeList);
          var updatedExclude = new List<string>(excludeList);

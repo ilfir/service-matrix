@@ -20,9 +20,8 @@ builder.Services.AddControllers();
 // Register core services
 builder.Services.AddScoped<IFileHelper, FileHelper>();
 
-// Dictionary cache: loads all dictionary files once per request,
-// eliminating per-request file I/O in handlers.
-builder.Services.AddScoped<DictionaryCacheService>();
+// Dictionary cache: loaded once per application lifetime, not per request
+builder.Services.AddSingleton<DictionaryCacheService>();
 
 // Register command handlers
 builder.Services.AddScoped<WordSearchCommandHandler>();

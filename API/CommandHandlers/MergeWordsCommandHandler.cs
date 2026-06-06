@@ -64,8 +64,8 @@ public class MergeWordsCommandHandler
                _logger.LogDebug("Writing merged results with {Count} words to resources/merged.txt.", mergedWords.Count);
              await _fileHelper.WriteFileNewContents("resources", "merged.txt", mergedWords);
 
-             // Refresh the cache after writing so subsequent requests see updated data
-             _dictionaryCache.Refresh(_fileHelper);
+              // Refresh the cache after writing so subsequent requests see updated data
+              _dictionaryCache.Refresh();
 
                var result = new MergeResponse(addedCount, removedCount);
                _logger.LogInformation("Merge words completed. Added={AddedCount}, Removed={RemovedCount}", addedCount, removedCount);

@@ -8,64 +8,68 @@ using Xunit;
 namespace service_matrix_tests
 {
     public class QueryHandlerTests
-          {
-             [Fact]
+           {
+               [Fact]
             public void GetWordsQueryHandler_ShouldBeInstantiable()
-                  {
-                      // Arrange
-                    var mockFileHelper = new Mock<IFileHelper>();
-                    var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
+                    {
+                       // Arrange
+                      var mockFileHelper = new Mock<IFileHelper>();
+                      var mockDictionaryCache = new Mock<DictionaryCacheService>(Mock.Of<ILogger<DictionaryCacheService>>());
+                      var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
 
-                      // Act
-                    var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockLogger.Object);
+                       // Act
+                      var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockDictionaryCache.Object, mockLogger.Object);
 
-                      // Assert
-                    Assert.NotNull(handler);
-                  }
+                       // Assert
+                      Assert.NotNull(handler);
+                }
 
-             [Fact]
+               [Fact]
             public void GetWordsQuery_ShouldHaveCorrectValues()
-                  {
-                      // Arrange
-                    var mockFileHelper = new Mock<IFileHelper>();
-                    var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
-                    var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockLogger.Object);
+                    {
+                       // Arrange
+                      var mockFileHelper = new Mock<IFileHelper>();
+                      var mockDictionaryCache = new Mock<DictionaryCacheService>(Mock.Of<ILogger<DictionaryCacheService>>());
+                      var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
+                      var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockDictionaryCache.Object, mockLogger.Object);
 
-                      // Act
-                      // No action needed, just check values
+                       // Act
+                       // No action needed, just check values
 
-                      // Assert
-                    Assert.True(true); // Handler created successfully
-                  }
+                       // Assert
+                      Assert.True(true); // Handler created successfully
+                }
 
-             [Fact]
+               [Fact]
             public void GetWordsQuery_FalseValue_ShouldBeCorrect()
-                  {
-                      // Arrange
-                    var mockFileHelper = new Mock<IFileHelper>();
-                    var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
-                    var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockLogger.Object);
+                    {
+                       // Arrange
+                      var mockFileHelper = new Mock<IFileHelper>();
+                      var mockDictionaryCache = new Mock<DictionaryCacheService>(Mock.Of<ILogger<DictionaryCacheService>>());
+                      var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
+                      var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockDictionaryCache.Object, mockLogger.Object);
 
-                      // Act
-                      // No action needed, just check values
+                       // Act
+                       // No action needed, just check values
 
-                      // Assert
-                    Assert.NotNull(handler);
-                  }
+                       // Assert
+                      Assert.NotNull(handler);
+                }
 
-             [Fact]
+               [Fact]
             public void GetWordsQuery_DefaultValue_ShouldBeTrue()
-                  {
-                      // Arrange
-                    var mockFileHelper = new Mock<IFileHelper>();
-                    var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
-                    var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockLogger.Object);
+                    {
+                       // Arrange
+                      var mockFileHelper = new Mock<IFileHelper>();
+                      var mockDictionaryCache = new Mock<DictionaryCacheService>(Mock.Of<ILogger<DictionaryCacheService>>());
+                      var mockLogger = new Mock<ILogger<GetWordsQueryHandler>>();
+                      var handler = new GetWordsQueryHandler(mockFileHelper.Object, mockDictionaryCache.Object, mockLogger.Object);
 
-                      // Act
-                      // No action needed, just check values
+                       // Act
+                       // No action needed, just check values
 
-                      // Assert
-                    Assert.NotNull(handler);
-                  }
-          }
+                       // Assert
+                      Assert.NotNull(handler);
+                }
+            }
 }

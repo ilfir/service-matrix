@@ -1,111 +1,146 @@
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace service_matrix.Helpers;
 
 /// <summary>
-/// Cache for dictionary files. Loads all dictionary sources once per request
-/// and serves them from memory, eliminating per-request file I/O in handlers.
+/// Cache for dictionary files. Loads all dictionary files once per application lifetime,
+/// eliminating per-request file I/O in handlers.
 /// </summary>
 public class DictionaryCacheService
 {
     private readonly ILogger<DictionaryCacheService> _logger;
-    private readonly HashSet<string> _definitions;
-    private readonly HashSet<string> _merged;
-    private readonly HashSet<string> _include;
-    private readonly HashSet<string> _exclude;
+    private HashSet<string> _definitions;
+    private HashSet<string> _merged;
+    private HashSet<string> _include;
+    private HashSet<string> _exclude;
 
-     /// <summary>
-     /// Initializes a new instance of the <see cref="DictionaryCacheService"/> class.
-     /// Loads all dictionary files from disk once.
-     /// </summary>
-     /// <param name="fileHelper">The file helper service for reading initial data.</param>
-     /// <param name="logger">The logger.</param>
-    public DictionaryCacheService(IFileHelper fileHelper, ILogger<DictionaryCacheService> logger)
-     {
-         _logger = logger;
+       /// <summary>
+       /// Initializes a new instance of the <see cref="DictionaryCacheService"/> class.
+       /// Loads all dictionary files from disk at startup (singleton lifetime).
+       /// </summary>
+       /// <param name="logger">The logger.</param>
+    public DictionaryCacheService(ILogger<DictionaryCacheService> logger)
+       {
+          _logger = logger;
+        LoadDictionariesFromDisk();
+       }
 
-        var definitions = fileHelper.ReadFile("resources", "definitions.txt");
-        var merged = fileHelper.ReadFile("resources", "merged.txt");
-        var includeList = fileHelper.ReadFile("data", "include.txt");
-        var excludeList = fileHelper.ReadFile("data", "exclude.txt");
-
-         _definitions = new HashSet<string>(definitions, StringComparer.OrdinalIgnoreCase);
-         _merged = new HashSet<string>(merged, StringComparer.OrdinalIgnoreCase);
-         _include = new HashSet<string>(includeList, StringComparer.OrdinalIgnoreCase);
-         _exclude = new HashSet<string>(excludeList, StringComparer.OrdinalIgnoreCase);
-
-         _logger.LogInformation(
-             "Dictionary cache loaded: {Definitions} definitions, {Merged} merged, {Include} included, {Exclude} excluded.",
-             _definitions.Count, _merged.Count, _include.Count, _exclude.Count);
-     }
-
-     /// <summary>
-     /// Gets all definition words (from definitions.txt and merged.txt combined).
-     /// </summary>
+      /// <summary>
+      /// Gets all definition words (from definitions.txt and merged.txt combined).
+      /// </summary>
     public IEnumerable<string> Definitions => _definitions;
 
-     /// <summary>
-     /// Gets merged words.
-     /// </summary>
+      /// <summary>
+      /// Gets merged words.
+      /// </summary>
     public IEnumerable<string> Merged => _merged;
 
-     /// <summary>
-     /// Gets included words.
-     /// </summary>
+      /// <summary>
+      /// Gets included words.
+      /// </summary>
     public IEnumerable<string> Include => _include;
 
-     /// <summary>
-     /// Gets excluded words.
-     /// </summary>
+      /// <summary>
+      /// Gets excluded words.
+      /// </summary>
     public IEnumerable<string> Exclude => _exclude;
 
-     /// <summary>
-     /// Gets the combined dictionary (definitions + merged - exclude), deduplicated.
-     /// </summary>
-     /// <param name="minLength">Minimum word length filter.</param>
-     /// <param name="maxLength">Maximum word length filter.</param>
-     /// <returns>An enumerable of unique words matching the length constraints.</returns>
-    public IEnumerable<string> GetFilteredDictionary(int minLength, int maxLength)
-        {
-        var excludeSet = _exclude;
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+         /// Gets dictionary words filtered by minimum and maximum length.
+         /// Excludes words in the exclude list and deduplicates across sources.
+         /// </summary>
+         /// <param name="minLength">The minimum word length (inclusive).</param>
+         /// <param name="maxLength">The maximum word length (inclusive).</param>
+         /// <returns>An enumerable of words whose length falls within the specified range.</returns>
+       public IEnumerable<string> GetFilteredDictionary(int minLength, int maxLength)
+           {
+            var excludeSet = _exclude;
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var word in _definitions.Concat(_merged))
-            {
-            if (word.Length >= minLength && word.Length <= maxLength && !excludeSet.Contains(word) && seen.Add(word))
-                yield return word;
-            }
+            foreach (var word in _definitions.Concat(_merged))
+                 {
+                if (word.Length >= minLength && word.Length <= maxLength && !excludeSet.Contains(word) && seen.Add(word))
+                    yield return word;
+                 }
+           }
 
-            // Include words that aren't already in definitions/merged and not excluded
-        foreach (var word in _include)
-            {
-            if (!excludeSet.Contains(word) && word.Length >= minLength && seen.Add(word))
-                yield return word;
-            }
+         /// <summary>
+        /// Refreshes the cache by re-reading all dictionary files from disk.
+        /// </summary>
+      public void Refresh()
+         {
+            _logger.LogInformation("Refreshing dictionary cache from disk files...");
+          LoadDictionariesFromDisk();
+         }
+
+         /// <summary>
+         /// Loads all dictionary files from disk into memory.
+         /// </summary>
+         /// <param name="fileHelper">The file helper service for reading initial data.</param>
+        private void LoadDictionaries(IFileHelper fileHelper)
+      {
+         try
+           {
+            var definitions = fileHelper.ReadFile("resources", "definitions.txt");
+            var merged = fileHelper.ReadFile("resources", "merged.txt");
+            var includeList = fileHelper.ReadFile("data", "include.txt");
+            var excludeList = fileHelper.ReadFile("data", "exclude.txt");
+
+              _definitions.Clear();
+            foreach (var word in definitions) _definitions.Add(word);
+
+              _merged.Clear();
+            foreach (var word in merged) _merged.Add(word);
+
+              _include.Clear();
+            foreach (var word in includeList) _include.Add(word);
+
+              _exclude.Clear();
+            foreach (var word in excludeList) _exclude.Add(word);
+
+              _logger.LogInformation(
+                  "Dictionary cache loaded: {Definitions} definitions, {Merged} merged, {Include} included, {Exclude} excluded.",
+                  _definitions.Count, _merged.Count, _include.Count, _exclude.Count);
+           }
+         catch (Exception ex)
+           {
+              _logger.LogError(ex, "Failed to load dictionary files");
+            throw;
+           }
         }
 
-     /// <summary>
-     /// Refreshes the cache by re-reading all dictionary files from disk.
-     /// Useful after merge or update operations.
-     /// </summary>
-    public void Refresh(IFileHelper fileHelper)
-     {
-        var definitions = fileHelper.ReadFile("resources", "definitions.txt");
-        var merged = fileHelper.ReadFile("resources", "merged.txt");
-        var includeList = fileHelper.ReadFile("data", "include.txt");
-        var excludeList = fileHelper.ReadFile("data", "exclude.txt");
+        /// <summary>
+        /// Loads all dictionary files directly from disk (for singleton initialization).
+        /// </summary>
+       private void LoadDictionariesFromDisk()
+       {
+        try
+          {
+            string basePath = Path.Combine(AppContext.BaseDirectory, "resources");
+            string dataPath = Path.Combine(AppContext.BaseDirectory, "data");
 
-         _definitions.Clear();
-        foreach (var w in definitions) _definitions.Add(w);
-         _merged.Clear();
-        foreach (var w in merged) _merged.Add(w);
-         _include.Clear();
-        foreach (var w in includeList) _include.Add(w);
-         _exclude.Clear();
-        foreach (var w in excludeList) _exclude.Add(w);
+            var definitions = File.ReadAllLines(Path.Combine(basePath, "definitions.txt")).ToList();
+            var merged = File.ReadAllLines(Path.Combine(basePath, "merged.txt")).ToList();
+            var includeList = File.ReadAllLines(Path.Combine(dataPath, "include.txt")).ToList();
+            var excludeList = File.ReadAllLines(Path.Combine(dataPath, "exclude.txt")).ToList();
 
-         _logger.LogInformation(
-             "Dictionary cache refreshed: {Definitions} definitions, {Merged} merged, {Include} included, {Exclude} excluded.",
-             _definitions.Count, _merged.Count, _include.Count, _exclude.Count);
-     }
-}
+            _definitions = new HashSet<string>(definitions, StringComparer.OrdinalIgnoreCase);
+            _merged = new HashSet<string>(merged, StringComparer.OrdinalIgnoreCase);
+            _include = new HashSet<string>(includeList, StringComparer.OrdinalIgnoreCase);
+            _exclude = new HashSet<string>(excludeList, StringComparer.OrdinalIgnoreCase);
+
+              _logger.LogInformation(
+                   "Dictionary cache loaded from disk: {Definitions} definitions, {Merged} merged, {Include} included, {Exclude} excluded.",
+                   _definitions.Count, _merged.Count, _include.Count, _exclude.Count);
+          }
+        catch (Exception ex)
+          {
+              _logger.LogError(ex, "Failed to load dictionary files from disk at startup");
+            throw;
+          }
+       }
+    }
