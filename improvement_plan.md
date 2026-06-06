@@ -160,8 +160,8 @@ This document tracks all improvements suggested for the Service Matrix project b
 
 ### 9. DevOps Improvements 🚢 Priority: LOW
 
-- [ ] **Add Health Checks**
-     - Implement IHealthCheck for database/file system checks
+- [x] ~~**Add Health Checks**~~ (Not needed)
+        - Implement IHealthCheck for database/file system checks
 
 - [ ] **Add API Documentation for Errors**
      - Add error response schemas to Swagger
