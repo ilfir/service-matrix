@@ -1,5 +1,9 @@
 using System.Reflection;
 using Microsoft.OpenApi;
+using service_matrix.CommandHandlers;
+using service_matrix.Helpers;
+using service_matrix.Middleware;
+using service_matrix.QueryHandlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,20 +16,55 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// Register core services
+builder.Services.AddScoped<IFileHelper, FileHelper>();
+
+// Dictionary cache: loaded once per application lifetime, not per request
+builder.Services.AddSingleton<DictionaryCacheService>();
+
+// Register command handlers
+builder.Services.AddScoped<WordSearchCommandHandler>();
+builder.Services.AddScoped<UpdateWordsCommandHandler>();
+builder.Services.AddScoped<MergeWordsCommandHandler>();
+
+// Register query handlers
+builder.Services.AddScoped<GetWordsQueryHandler>();
+builder.Services.AddScoped<LookupWordQueryHandler>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Service Matrix API", Version = "v1" });
-    // Include XML comments for Swagger
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "Service Matrix API", 
+        Version = "v1",
+        Description = "A high-performance ASP.NET Core Web API providing word search functionality over a letter matrix, backed by file-based dictionary data. Supports searching words, updating include/exclude lists, merging dictionaries, and looking up word definitions.",
+        Contact = new OpenApiContact 
+        { 
+            Name = "Service Matrix Support",
+            Email = "support@servicematrix.example.com",
+            Url = new Uri("https://github.com/ilfir/service-matrix")
+        },
+        License = new OpenApiLicense 
+        { 
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+
+      // Include XML comments for Swagger
+     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+     c.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseRequestLogging();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -36,7 +75,6 @@ app.UseSwaggerUI(c =>
 // Enable CORS
 app.UseCors("AllowAllOrigins");
 
- 
 
 app.UseAuthorization();
 

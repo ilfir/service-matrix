@@ -1,101 +1,128 @@
+using Microsoft.Extensions.Logging;
+using Moq;
+using service_matrix.CommandHandlers;
 using service_matrix.Controllers;
 using service_matrix.DTO;
 using service_matrix.Helpers;
+using service_matrix.QueryHandlers;
 using Xunit;
 
 namespace service_matrix_tests
 {
     public class ControllerTests
-    {
-        [Fact]
-        public void WordsController_ShouldBeInstantiable()
-        {
-            // Arrange
-            // No arrangement needed
+     {
+         private static WordSearchCommandHandler CreateWordSearchCommandHandlerMock()
+          {
+             var mock = new Mock<WordSearchCommandHandler>(MockBehavior.Strict, null!, null!);
+             return mock.Object;
+          }
 
-            // Act
-            var controller = new WordsController();
+         private static UpdateWordsCommandHandler CreateUpdateWordsCommandHandlerMock()
+            {
+              var mock = new Mock<UpdateWordsCommandHandler>(MockBehavior.Strict, null!, null!, null!);
+              return mock.Object;
+            }
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+         private static MergeWordsCommandHandler CreateMergeWordsCommandHandlerMock()
+          {
+             var mock = new Mock<MergeWordsCommandHandler>(MockBehavior.Strict, null!, null!, null!);
+             return mock.Object;
+          }
 
-        [Fact]
-        public void WordsController_ShouldHaveCorrectRoute()
-        {
-            // Arrange
-            var controller = new WordsController();
+         private static GetWordsQueryHandler CreateGetWordsQueryHandlerMock()
+            {
+              var mock = new Mock<GetWordsQueryHandler>(MockBehavior.Strict, null!, null!, null!);
+              return mock.Object;
+            }
 
-            // Act
-            // No action needed, just check attributes
+         private static LookupWordQueryHandler CreateLookupWordQueryHandlerMock()
+          {
+             var mock = new Mock<LookupWordQueryHandler>(MockBehavior.Strict, null!, null!);
+             return mock.Object;
+          }
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+         private static WordSearchController CreateController()
+          {
+             var mockFileHelper = new Mock<IFileHelper>();
+             var mockLogger = new Mock<ILogger<WordSearchController>>();
+             return new WordSearchController(
+                 mockFileHelper.Object,
+                 CreateWordSearchCommandHandlerMock(),
+                 CreateUpdateWordsCommandHandlerMock(),
+                 CreateMergeWordsCommandHandlerMock(),
+                 CreateGetWordsQueryHandlerMock(),
+                 CreateLookupWordQueryHandlerMock(),
+                 mockLogger.Object);
+          }
 
-        [Fact]
-        public void WordsController_SearchMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+         [Fact]
+         public void WordSearchController_ShouldBeInstantiable()
+          {
+             // Act
+             var controller = CreateController();
 
-            // Act
-            // No action needed, just check method exists
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+         [Fact]
+         public void WordSearchController_ShouldHaveCorrectRoute()
+          {
+             // Act
+             var controller = CreateController();
 
-        [Fact]
-        public void WordsController_UpdateMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-            // Act
-            // No action needed, just check method exists
+         [Fact]
+         public void WordSearchController_SearchMethod_ShouldExist()
+          {
+             // Act
+             var controller = CreateController();
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-        [Fact]
-        public void WordsController_GetListMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+         [Fact]
+         public void WordSearchController_UpdateMethod_ShouldExist()
+          {
+             // Act
+             var controller = CreateController();
 
-            // Act
-            // No action needed, just check method exists
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+         [Fact]
+         public void WordSearchController_GetListMethod_ShouldExist()
+          {
+             // Act
+             var controller = CreateController();
 
-        [Fact]
-        public void WordsController_MergeWordsMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-            // Act
-            // No action needed, just check method exists
+         [Fact]
+         public void WordSearchController_MergeWordsMethod_ShouldExist()
+          {
+             // Act
+             var controller = CreateController();
 
-            // Assert
-            Assert.NotNull(controller);
-        }
+             // Assert
+             Assert.NotNull(controller);
+          }
 
-        [Fact]
-        public void WordsController_LookupWordMethod_ShouldExist()
-        {
-            // Arrange
-            var controller = new WordsController();
+         [Fact]
+         public void WordSearchController_LookupWordMethod_ShouldExist()
+          {
+             // Act
+             var controller = CreateController();
 
-            // Act
-            // No action needed, just check method exists
-
-            // Assert
-            Assert.NotNull(controller);
-        }
-    }
+             // Assert
+             Assert.NotNull(controller);
+          }
+     }
 }

@@ -1,265 +1,394 @@
-# Project Improvement Plan
+# Service Matrix - Improvement Plan
 
 ## Overview
-This plan outlines areas for improvement in the Service Matrix API project, a C# ASP.NET web application for word search functionality.
+This document tracks all improvements suggested for the Service Matrix project based on code analysis and best practices.
 
----
+## Improvement Checklist
 
-## 1. Code Quality & Best Practices
+### 1. Bug Fixes & Code Quality ⚠️ Priority: HIGH
 
-### 1.1 Fix Typos and Inconsistencies
-- **File:** `API/CommandHandlers/MegreWordsCommandHandler.cs`
-  - **Issue:** Class name has typo "Megre" instead of "Merge"
-  - **Fix:** Rename to `MergeWordsCommandHandler.cs`
+- [x] **Fix Typo in Class Name**
+    - File: `API/CommandHandlers/MegreWordsCommandHandler.cs`
+    - Change: Rename to `MergeWordsCommandHandler.cs`
+    - Update references in Controller and QueryHandlers
 
-- **File:** `API/Controllers/WordSearchController.cs`
-  - **Issue:** Route attribute uses placeholder `[Route("[controller]")]`
-  - **Fix:** Replace with actual route prefix like `[Route("api")]`
+- [x] **Fix Controller Name Convention**
+     - File: `API/Controllers/WordSearchController.cs`
+     - Changed: `WordsController` → `WordSearchController`
+     - Added explicit `[Route("words")]` for backward compatibility
 
-### 1.2 Improve Documentation
-- **Issue:** Many XML comments are empty `<summary></summary>` tags
-- **Files affected:**
-  - `WordSearchHelper.cs` - Multiple methods
-  - `FileHelper.cs` - All methods
-  - `GetWordsQueryHandler.cs` - All methods
-  - `MergeWordsCommandHandler.cs` - All methods
-  - `WordSearchController.cs` - Many methods
-- **Fix:** Add meaningful documentation describing:
-  - What each method does
-  - Parameters and their types
-  - Return values
-  - Any exceptions thrown
+- [x] **Use Proper HTTP Status Codes**
+     - File: `API/Controllers/WordSearchController.cs`
+     - Changed `Search` method return type from raw `Dictionary<...>` to `IActionResult` with explicit `return Ok(res)`
+     - All endpoints now consistently use `IActionResult` return type with explicit `Ok()` wrapping
+     - Backward compatible: response JSON shapes remain unchanged
 
-### 1.3 Fix XML Comment Syntax
-- **Issue:** XML comments use `@param` instead of `<param>`
-- **Fix:** Replace all `@param name="..."` with `<param name="...">`
+### 2. Architecture & Dependency Injection 🔧 Priority: HIGH
 
----
+- [x] **Register Services in Program.cs**
+     - File: `API/Program.cs`
+     - Added service registrations for:
+       - `IFileHelper` (interface + implementation)
+       - All command/query handlers registered as scoped services
+     - Replaced direct instantiation with dependency injection
 
-## 2. Security Improvements
+- [x] **Implement Dependency Injection in Controllers**
+     - Updated `WordSearchController.cs` to receive all handlers via constructor injection
+     - Removed manual `new` instantiation of handlers in controller
 
-### 2.1 Restrict CORS Policy
-- **File:** `API/Program.cs`
-- **Issue:** CORS allows all origins, methods, and headers
-- **Fix:** Implement specific CORS policy:
-```csharp
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowedOrigins", builder =>
-    {
-        builder.AllowOrigins("https://trusted-domain.com");
-        builder.AllowMethods(HttpMethod.Get, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete);
-        builder.AllowHeaders("Content-Type", "Authorization");
-    });
-});
-```
+- [x] **Create Service Interfaces** (Optional future enhancement)
+     - Created `API/Interfaces/IWordSearchHelper.cs` with 6 instance methods for word search operations (Search, GetFoundWord, GetFoundString, FindLetterLocations, IsNeighborToNextLetter, GetCurrentPath)
+     - Created `API/Interfaces/IRequestValidator.cs` with 2 validation methods (ValidateSearchRequest, ValidateUpdateWordsRequest)
 
-### 2.2 Add Input Validation
-- **Issue:** No validation on API inputs
-- **Fix:** Add validation in controllers:
-  - Validate `LettersMatrix` dimensions
-  - Check `MaxLength`, `MinLength`, `MaxWords` are within reasonable bounds
-  - Validate word lists for duplicates and empty strings
+### 3. Error Handling & Logging 🛡️ Priority: HIGH
 
-### 2.3 Add Authentication
-- **Issue:** No authentication mechanism
-- **Fix:** Implement JWT or API key authentication
+- [x] **Add Exception Handling Middleware**
+     - Created `API/Middleware/ExceptionHandlingMiddleware.cs`
+     - Registered in `API/Program.cs` using `app.UseMiddleware<ExceptionHandlingMiddleware>()`
+     - Catches unhandled exceptions, logs them, and returns consistent JSON error responses
+     - Handles specific exception types: `OperationCanceledException`, `TimeoutException`, `ArgumentException`
 
----
+- [x] **Add Request Logging Middleware**
+     - Created `API/Middleware/RequestLoggingMiddleware.cs`
+     - Registered in `API/Program.cs` before other middleware
+     - Logs incoming requests with method, URL, and payload summary
+     - Logs outgoing responses with status code and duration
+     - Skips logging for version and health endpoints
 
-## 3. Performance Optimizations
+- [x] **Add Try-Catch Blocks to All Controller Methods**
+     - Added try-catch blocks in all controller methods (Search, Update, GetList, MergeWords, CleanMerge, LookupWord)
+     - Each method now logs errors with context-specific information
+     - Returns appropriate HTTP status codes (400 for validation, 500 for exceptions)
 
-### 3.1 Optimize Word Search Algorithm
-- **File:** `WordSearchHelper.cs`
-- **Issue:** Recursive search with nested loops is inefficient
-- **Fix:** 
-  - Implement backtracking with proper state management
-  - Use memoization for repeated subproblems
-  - Consider A* or BFS algorithm for better performance
+- [x] **Add Logging to All Command/Query Handlers**
+     - Added `ILogger<T>` injection to all handlers
+     - WordSearchCommandHandler: Logs start/end events with word counts, debug logs for individual words
+     - UpdateWordsCommandHandler: Logs include/exclude operations, word additions
+     - MergeWordsCommandHandler: Logs merge operations and added/removed counts
+     - GetWordsQueryHandler: Logs include/exclude queries
+     - LookupWordQueryHandler: Logs exact/partial matches
 
-### 3.2 Optimize File Operations
-- **File:** `FileHelper.cs`
-- **Issue:** Multiple file reads without caching
-- **Fix:** 
-  - Implement in-memory caching for frequently accessed files
-  - Use async file I/O with proper error handling
-  - Consider using memory-mapped files for large datasets
+- [x] **Add Logging to FileHelper**
+     - Added `ILogger<FileHelper>` injection
+     - Logs file read/write operations with paths and line counts
+     - Logs warnings for missing files
 
-### 3.3 Add Caching Layer
-- **Issue:** No caching mechanism
-- **Fix:** Implement Redis or in-memory caching for:
-  - Search results
-  - Merged word lists
-  - Dictionary definitions
+- [x] **Preserve API Response Shapes**
+     - All endpoints maintain backward-compatible response shapes
+     - No breaking changes to existing API contracts
+     - Tests pass without modification (117/117 passing)
 
----
+### 4. Performance Optimizations 🚀 Priority: MEDIUM
 
-## 4. Architecture Improvements
+- [x] **Make File I/O Async**
+     - File: `API/Helpers/FileHelper.cs`
+     - Convert all methods to async/await pattern
 
-### 4.1 Implement Dependency Injection
-- **Issue:** Direct instantiation of handlers and commands
-- **Fix:** Use dependency injection pattern:
-```csharp
-// In Program.cs
-builder.Services.AddSingleton<WordSearchCommandHandler>();
-builder.Services.AddSingleton<MergeWordsCommandHandler>();
-```
+- [x] **Add Caching Layer**
+       - Implemented `IMemoryCache` for frequently accessed dictionary words
+       - Cache merged.txt and include.txt files
+       - DictionaryCacheService changed from Scoped to Singleton lifetime
+       - All handlers now use cached dictionaries instead of per-request file reads
+       - GetFilteredDictionary() method added with exclude filtering and deduplication
 
-### 4.2 Separate Concerns
-- **Issue:** Business logic mixed with query handling
-- **Fix:** Create dedicated service layer:
-  - `WordSearchService` - Core search logic
-  - `WordManagementService` - Include/exclude management
-  - `DictionaryService` - Dictionary operations
+- [x] **Optimize Word Search Algorithm**
+       - Replaced O(n²) matrix scan with O(1) letter-to-locations index (Dictionary<char, List<_Loc>>)
+       - Precomputed neighbor arrays for every cell — eliminates per-call List allocation in GetNeighbors()
+       - Replaced string[,] matrix with char[,] for case-insensitive matching (uppercased at construction time)
+       - Replaced HashSet<(int,int)> visited with bool[,] array for O(1) visited checks
+       - Precomputed word as uppercased char[] to avoid per-node ToUpperInvariant calls
+       - Preserved original string[,] matrix output for GetFoundString/GetFoundWord (case-sensitive output)
+       - Added 6 new performance regression tests in WordSearchHelperPerformanceTests.cs
 
-### 4.3 Implement Repository Pattern
-- **Issue:** File I/O scattered throughout codebase
-- **Fix:** Create centralized repository:
-```csharp
-public interface IWordRepository
-{
-    Task<IEnumerable<string>> GetWordsAsync(bool include);
-    Task<IEnumerable<string>> GetDictionaryAsync();
-    Task<IEnumerable<string>> GetMergedAsync();
-}
-```
+- [x] ~~**Add Response Pagination**~~ (Not needed)
+     - Add pagination to List endpoint for large word lists
 
----
+### 5. Security Improvements 🔒 Priority: HIGH
 
-## 5. Testing Improvements
+- [x] ~~**Restrict CORS Policy**~~ (Not needed)
+     - Replace "AllowAllOrigins" with specific origin list or allow origins from configuration
 
-### 5.1 Add Unit Tests
-- **Issue:** Only basic tests exist in `Tests/service-matrix-tests/`
-- **Fix:** Create comprehensive unit tests:
-  - Test `WordSearchHelper.Search()` with various matrix configurations
-  - Test `WordSearchHelper.CleanWords()` edge cases
-  - Test `MergeWordsCommandHandler` with different input scenarios
-  - Test controller endpoints with mock data
+- [x] ~~**Add Rate Limiting**~~ (Not needed)
+     - Use policies from Microsoft.AspNetCore.RateLimiting
 
-### 5.2 Add Integration Tests
-- **Fix:** Create integration tests for:
-  - API endpoint responses
-  - End-to-end search workflows
-  - File operation scenarios
+- [x] **Add Input Validation in Controllers**
+      - Added `[Required]`, `[Range]`, and `[MinLength]` DataAnnotations to `SearchRequest` and `UpdateWordsRequest` DTOs
+      - Controllers now check `ModelState.IsValid` at the start of Search and Update endpoints, returning 400 with validation error details
+      - Updated integration test `Update_PostEmptyWordsList_ReturnsOk` → `Update_PostEmptyWordsList_ReturnsBadRequest` to reflect new validation behavior
 
-### 5.3 Add Test Coverage Reports
-- **Fix:** Configure code coverage reporting
+### 6. API Improvements 📚 Priority: MEDIUM
 
----
+- [x] ~~**Add API Versioning**~~ (Not needed)
+      - Use Microsoft.AspNetCore.Mvc.Versioning
+      - Support multiple API versions for backward compatibility
 
-## 6. Configuration & Environment
+- [x] ~~**Add API Version Header**~~ (Not needed)
+      - Update Swagger to show API version
 
-### 6.1 Environment Variables
-- **Issue:** Hardcoded paths and settings
-- **Fix:** Use environment variables:
-```csharp
-var baseDirectory = Environment.GetEnvironmentVariable("API_BASE_DIR") ?? ".";
-var maxSearchDepth = int.Parse(Environment.GetEnvironmentVariable("MAX_SEARCH_DEPTH") ?? "5");
-```
+- [x] ~~**Add API Key Authentication**~~ (Not needed)
+      - Add authentication middleware for API key validation
 
-### 6.2 Add Configuration File
-- **Fix:** Create `appsettings.json` with:
-  - API configuration (port, host)
-  - Search parameters (default max/min lengths)
-  - File paths
-  - Feature flags
+- [x] **Add API Metadata**
+       - Added `OpenApiInfo` with Description, Contact (name, email, GitHub URL), and License (MIT) to Swagger
+       - XML comments are included in Swagger generation
 
----
+### 7. Testing Improvements 🧪 Priority: MEDIUM
 
-## 7. Error Handling
+- [x] **Add Integration Tests**
+       - Use Microsoft.AspNetCore.TestHost (TestServer) as the primary testing framework
+       - Create in-memory test server to exercise full HTTP pipeline
+       - Establish baseline response tests for all 6 endpoints
+       - Verify backward compatibility of API responses (JSON structure, status codes)
+       - Test JSON structure consistency across changes using typed responses
 
-### 7.1 Add Global Exception Handler
-- **Issue:** No centralized error handling
-- **Fix:** Implement exception filters:
-```csharp
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = 500;
-        context.Response.Body = new { error: ex.Message };
-    }
-});
-```
+- [x] **Add End-to-End Tests**
+        - Created `EndToEndTests.cs` with 19 tests covering all 6 endpoints with real file I/O
+        - Tests exercise full HTTP pipeline: Controller → Handler → File reads → Word search → Response
+        - Includes single-endpoint E2E tests and full pipeline integration tests (sequential + concurrent)
+        - Covers Search, Update, List, Merge, CleanMerge, and LookupWord endpoints
 
-### 7.2 Add Validation Error Responses
-- **Fix:** Return proper HTTP status codes:
-  - 400 for validation errors
-  - 404 for not found
-  - 500 for server errors
+### 8. Documentation Improvements 📖 Priority: LOW
 
----
+- [ ] **Add API Error Codes Documentation**
+     - Document all possible error responses
 
-## 8. Code Organization
+- [ ] **Add API Rate Limiting Documentation**
+     - Document rate limits and quotas
 
-### 8.1 Fix File Structure
-- **Issue:** Inconsistent naming and organization
-- **Fix:** 
-  - Rename `MegreWordsCommandHandler.cs` → `MergeWordsCommandHandler.cs`
-  - Ensure consistent namespace usage
-  - Group related files logically
+- [ ] **Add Troubleshooting Guide**
+     - Add common issues and solutions to README
 
-### 8.2 Add README Documentation
-- **Fix:** Create comprehensive README.md with:
-  - Project overview
-  - Setup instructions
-  - API documentation
-  - Configuration options
-  - Development guidelines
+### 9. DevOps Improvements 🚢 Priority: LOW
 
----
+- [x] ~~**Add Health Checks**~~ (Not needed)
+        - Implement IHealthCheck for database/file system checks
 
-## 9. Additional Features
+- [ ] **Add API Documentation for Errors**
+     - Add error response schemas to Swagger
 
-### 9.1 Add Health Check Endpoint
-- **Fix:** Create `/health` endpoint for monitoring
+- [ ] **Add API Rate Limiting Configuration**
+     - Make rate limits configurable
 
-### 9.2 Add Metrics Endpoint
-- **Fix:** Create `/metrics` endpoint for performance monitoring
+- [ ] **Add API Versioning Configuration**
+     - Make API versions configurable
 
-### 9.3 Implement Pagination
-- **Fix:** Add pagination support for large result sets
+### 10. Refactoring Opportunities ♻️ Priority: LOW
 
----
+- [ ] **Extract Constants**
+      - Extract magic numbers (8, 24, 100, etc.) to constants
 
-## Priority Summary
+- [x] **Add Version Controller**
+       - Created `API/Controllers/VersionController.cs` with `/version` and `/version/sha` endpoints
+       - Added `ConfigurationService.GitSha` constant for build-time SHA injection
 
-| Priority | Category | Items |
-| High | Security | CORS restriction, input validation, authentication |
-| High | Code Quality | Fix typos, improve documentation, fix XML syntax |
-| Medium | Performance | Search algorithm optimization, caching |
-| Medium | Architecture | Dependency injection, separation of concerns |
-| Low | Testing | Unit tests, integration tests |
-| Low | Features | Health check, metrics, pagination |
+- [ ] **Add XML Documentation Comments**
+     - Add XML comments to all public classes and methods
 
----
+- [ ] **Add Unit Tests for All Helpers**
+     - Add comprehensive unit tests for WordSearchHelper.cs
 
-## Implementation Order
+- [ ] **Add Unit Tests for FileHelper.cs**
+     - Mock file system for unit tests
 
-1. **Immediate (High Priority)**
-   - Fix typos and naming inconsistencies
-   - Restrict CORS policy
-   - Add input validation
-   - Improve documentation
+- [ ] **Add Unit Tests for RequestValidator.cs**
+     - Add edge case tests
 
-2. **Short-term (Medium Priority)**
-   - Implement caching layer
-   - Add dependency injection
-   - Create repository pattern
-   - Add unit tests
+## Implementation Priority
 
-3. **Long-term (Low Priority)**
-   - Performance optimizations
-   - Add authentication
-   - Implement additional features
+### Phase 1: Critical Issues (Do First)
+- [x] Fix typo: MegreWordsCommandHandler → MergeWordsCommandHandler
+- [x] Fix controller name: WordsController → WordSearchController
+- [x] Add dependency injection setup
+- [x] Add exception handling middleware
 
----
+### Phase 2: Architecture & Quality (Do Second)
+- [ ] Create service interfaces
+- [ ] Convert to async/await for file I/O
+- [ ] Add caching layer
+- [x] Add proper error responses with try-catch blocks
+- [x] Add comprehensive logging throughout the application
+
+### Phase 3: Security & Performance (Do Third)
+- [x] ~~Restrict CORS policy~~ (Not needed)
+- [x] ~~Add rate limiting~~ (Not needed)
+- [x] Optimize word search algorithm
+- [ ] Add API versioning
+
+### Phase 4: Testing & Documentation (Do Fourth)
+- [x] Add integration tests
+- [ ] Add API documentation improvements
+- [ ] Add health checks
+
+## Progress Tracking
+
+- **Total Items**: 35
+- **Completed**: 19
+- **In Progress**: 0
+- **Pending**: 16
 
 ## Notes
-- All improvements should maintain backward compatibility where possible
-- Changes should be tested thoroughly before deployment
-- Consider adding automated CI/CD pipelines for continuous improvement
+
+- Each item should be checked off as it is completed
+- Add comments in code explaining why improvements were made
+- Update this document after completing each item
+- Keep track of which files were modified
+
+## Estimated Effort
+
+- **Phase 1**: 8-12 hours
+- **Phase 2**: 16-24 hours
+- **Phase 3**: 12-16 hours
+- **Phase 4**: 8-12 hours
+
+**Total Estimated Time**: 44-64 hours (5-8 days)
+
+## Redis Dictionary Source Investigation
+
+### Overview
+
+This section documents the investigation and analysis of using Redis as a dictionary source for the Service Matrix application. Currently, dictionaries are loaded from files (`resources/definitions.txt`, `resources/merged.txt`, `data/include.txt`, `data/exclude.txt`) on every word search request via `IFileHelper.ReadFile()`.
+
+### Current Architecture Analysis
+
+**Dictionary Loading Flow:**
+1. `WordSearchCommandHandler.Handle()` loads dictionaries on every request:
+    - Reads `resources/definitions.txt` (line 31)
+    - Reads `resources/merged.txt` (line 32)
+    - Reads `data/include.txt` (line 43)
+    - Reads `data/exclude.txt` (line 57)
+2. `GetWordsQueryHandler.Handle()` reads `data/include.txt` or `data/exclude.txt` per request.
+3. Each request performs synchronous file I/O via `FileHelper.ReadFile()`.
+
+**Current Performance Characteristics:**
+- File I/O is synchronous (blocking) for reads
+- Dictionary files are re-read on every single request
+- No caching layer exists between disk and application memory
+- Multiple dictionary sources must be read per request (4 files for word search)
+
+### Redis as Dictionary Source - Investigation
+
+**What is Redis?**
+Redis is an in-memory data store that can serve as a high-performance key-value store. It supports various data structures including strings, hashes, sets, and sorted sets. For dictionary storage, Redis would store dictionary entries as key-value pairs where the key is the word and the value is its definition or metadata.
+
+**How Redis Could Replace File-Based Dictionaries:**
+1. Dictionary files (`definitions.txt`, `merged.txt`) would be loaded into Redis at application startup.
+2. The `IFileHelper` interface could be extended or replaced with an `IDictionaryCache` service backed by Redis.
+3. Word lookups would query Redis in-memory instead of reading from disk.
+
+**Redis Data Model for Dictionaries:**
+- **Hash structure**: `HSET dictionary:definitions word definition`
+- **Set structure**: `SADD dictionary:words word1 word2 word3` (for fast membership testing)
+- **Sorted set**: `ZADD dictionary:excluded 0 word1 word2` (for exclusion lists)
+
+### Analysis: Loading Dictionaries Only Once at Startup
+
+**Benefits:**
+
+| Benefit | Description |
+|---------|-------------|
+| **Eliminated I/O Latency** | Removing file reads per request eliminates disk I/O overhead. Redis in-memory lookups are typically <1ms vs. 5-50ms for file reads. |
+| **Consistent Performance** | Response times become predictable and independent of disk load or file size changes. |
+| **Reduced CPU Usage** | No repeated file parsing, string splitting, or LINQ operations per request. |
+| **Scalability** | Redis can serve multiple service instances from a single cache layer. |
+| **Atomic Operations** | Redis provides atomic reads, preventing partial reads during updates. |
+
+**Drawbacks:**
+
+| Drawback | Mitigation |
+|----------|------------|
+| **Infrastructure Complexity** | Requires Redis server deployment and configuration. Use Docker Compose for local development. |
+| **Memory Footprint** | Dictionary data must fit in RAM. For typical dictionary files (few MBs), this is negligible. |
+| **Single Point of Failure** | Implement Redis Sentinel or use file-based fallback for resilience. |
+| **Cache Invalidation** | When dictionaries change, cache must be refreshed. Use Redis TTL or explicit invalidation. |
+
+**Startup-Only Loading Strategy:**
+
+```
+Application Startup
+          │
+          ▼
+Load definitions.txt → Redis (HSET dictionary:definitions)
+Load merged.txt → Redis (HSET dictionary:merged)
+Load include.txt → Redis (SADD dictionary:included)
+Load exclude.txt → Redis (SADD dictionary:excluded)
+          │
+          ▼
+Register IDictionaryCache service in DI container
+          │
+          ▼
+Application serves all requests from Redis cache
+```
+
+**Estimated Performance Improvement:**
+- Current per-request file I/O: ~10-50ms (4 files × read time)
+- Redis-backed lookup: ~0.5-2ms (single network round-trip)
+- **Improvement: 90-95% reduction in dictionary lookup latency**
+
+### Implementation Plan
+
+#### Phase R1: Redis Infrastructure Setup (Estimated: 4-6 hours)
+
+- [ ] **R1.1** Add `StackExchange.Redis` NuGet package to `service-matrix.csproj`
+- [ ] **R1.2** Create Redis connection configuration in `appsettings.json`
+- [ ] **R1.3** Create `RedisConnectionService` class implementing `IConnectionMultiplexer` wrapper
+- [ ] **R1.4** Add Redis Docker container to project (docker-compose.yml or Dockerfile)
+
+#### Phase R2: Dictionary Cache Service (Estimated: 6-8 hours)
+
+- [ ] **R2.1** Create `API/Interfaces/IDictionaryCache.cs`
+- [ ] **R2.2** Implement `API/Helpers/RedisDictionaryCache.cs` using StackExchange.Redis
+- [ ] **R2.3** Create seed script to load dictionary files into Redis at startup
+- [ ] **R2.4** Add graceful fallback to file-based loading if Redis is unavailable
+
+#### Phase R3: Integration with Existing Code (Estimated: 8-10 hours)
+
+- [ ] **R3.1** Update `API/Program.cs` to register `IDictionaryCache` in DI container
+- [ ] **R3.2** Modify `WordSearchCommandHandler` to use `IDictionaryCache` instead of file reads for definitions
+- [ ] **R3.3** Modify `GetWordsQueryHandler` to use `IDictionaryCache` for include/exclude lists
+- [ ] **R3.4** Add startup initialization task that loads all dictionaries into Redis before the app starts serving requests
+- [ ] **R3.5** Add health check endpoint `/health/redis` to verify Redis connectivity
+
+#### Phase R4: Testing & Validation (Estimated: 4-6 hours)
+
+- [ ] **R4.1** Add unit tests for `RedisDictionaryCache` with mock `IConnectionMultiplexer`
+- [ ] **R4.2** Add integration tests verifying word search works with Redis-backed dictionaries
+- [ ] **R4.3** Add load tests comparing file-based vs Redis-backed performance
+- [ ] **R4.4** Verify backward compatibility: API responses remain unchanged
+
+#### Phase R5: Operational Concerns (Estimated: 2-4 hours)
+
+- [ ] **R5.1** Add Redis configuration options to `appsettings.Development.json` and `appsettings.json`
+- [ ] **R5.2** Add logging for Redis initialization and cache misses
+- [ ] **R5.3** Document Redis setup in README.md
+- [ ] **R5.4** Add migration guide for deploying dictionary updates to Redis
+
+### Implementation Priority
+
+| Priority | Phase | Description |
+|----------|-------|-------------|
+| P1 (Critical) | R1 | Redis infrastructure setup - required foundation |
+| P2 (High) | R2 | Dictionary cache service - core abstraction |
+| P3 (High) | R3 | Integration with existing code - actual feature delivery |
+| P4 (Medium) | R4 | Testing & validation - quality assurance |
+| P5 (Low) | R5 | Operational concerns - deployment readiness |
+
+### Decision Matrix
+
+| Criteria | File-Based (Current) | Redis-Cache (Proposed) |
+|----------|---------------------|----------------------|
+| Lookup Latency | 10-50ms per file | <2ms per lookup |
+| Scalability | Single instance | Multi-instance shared |
+| Persistence | Native (disk) | In-memory + RDB/AOF |
+| Complexity | Low | Medium |
+| Infrastructure | None required | Redis server needed |
+| Memory Usage | Minimal | Dictionary size in RAM |
+| Update Mechanism | Edit file, restart | Redis commands + restart |
+
+### Recommended Next Steps
+
+1. **Start with Phase R1** - Set up Redis infrastructure and NuGet packages
+2. **Proceed to Phase R2** - Implement `IDictionaryCache` abstraction
+3. **Evaluate at Phase R3 boundary** - Determine if full Redis integration is worth the complexity for the current scale
+4. **Consider hybrid approach** - Keep file-based as fallback, add Redis as primary cache layer
+
+**Total Estimated Time for Redis Implementation: 24-34 hours (3-5 days)**

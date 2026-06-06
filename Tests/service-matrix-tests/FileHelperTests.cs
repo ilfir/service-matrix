@@ -6,7 +6,7 @@ namespace service_matrix_tests
     public class FileHelperTests
     {
         [Fact]
-        public void ReadFileAsync_ExistingFile_ShouldReturnLines()
+        public async Task ReadFileAsync_ExistingFile_ShouldReturnLines()
         {
             // Arrange
             var tempFile = Path.Combine(AppContext.BaseDirectory, "test", "temp.txt");
@@ -14,29 +14,32 @@ namespace service_matrix_tests
             File.WriteAllLines(tempFile, new[] { "line1", "line2", "line3" });
 
             // Act
-            var result = FileHelper.ReadFileAsync("test", "temp.txt").ToList();
+            var helper = new FileHelper(null);
+             var result = await helper.ReadFileAsync("test", "temp.txt");
+             var resultList = result.ToList();
 
             // Assert
-            Assert.Equal(3, result.Count);
-            Assert.Equal("line1", result[0]);
-            Assert.Equal("line2", result[1]);
-            Assert.Equal("line3", result[2]);
+            Assert.Equal(3, resultList.Count);
+            Assert.Equal("line1", resultList[0]);
+            Assert.Equal("line2", resultList[1]);
+            Assert.Equal("line3", resultList[2]);
 
             // Cleanup
             File.Delete(tempFile);
         }
 
         [Fact]
-        public void ReadFileAsync_NNonExistingFile_ShouldReturnEmpty()
+        public async Task ReadFileAsync_NonExistingFile_ShouldReturnEmpty()
         {
             // Arrange
             var tempFile = Path.Combine(AppContext.BaseDirectory, "test", "nonexistent.txt");
 
             // Act
-            var result = FileHelper.ReadFileAsync("test", "nonexistent.txt").ToList();
+            var helper2 = new FileHelper(null);
+             var resultList2 = (await helper2.ReadFileAsync("test", "nonexistent.txt")).ToList();
 
             // Assert
-            Assert.Empty(result);
+            Assert.Empty(resultList2);
         }
 
         [Fact]
@@ -83,7 +86,7 @@ namespace service_matrix_tests
         }
 
         [Fact]
-        public void ReadFileAsync_EmptyFile_ShouldReturnEmpty()
+        public async Task ReadFileAsync_EmptyFile_ShouldReturnEmpty()
         {
             // Arrange
             var tempFile = Path.Combine(AppContext.BaseDirectory, "test", "empty.txt");
@@ -91,10 +94,11 @@ namespace service_matrix_tests
             File.WriteAllText(tempFile, "");
 
             // Act
-            var result = FileHelper.ReadFileAsync("test", "empty.txt").ToList();
+            var helper3 = new FileHelper(null);
+             var resultList3 = (await helper3.ReadFileAsync("test", "empty.txt")).ToList();
 
             // Assert
-            Assert.Empty(result);
+            Assert.Empty(resultList3);
 
             // Cleanup
             File.Delete(tempFile);

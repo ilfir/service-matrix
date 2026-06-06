@@ -7,7 +7,8 @@ WORKDIR /src
 COPY ["service-matrix.csproj", "./"]
 RUN dotnet restore "service-matrix.csproj"
 COPY . .
-WORKDIR "/src/."
+ARG GIT_SHA
+RUN echo "$GIT_SHA" > /src/.git-sha
 RUN dotnet build "service-matrix.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -16,6 +17,7 @@ RUN dotnet publish "service-matrix.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=build /src/.git-sha .git-sha
 COPY resources/definitions.txt ./resources/definitions.txt
 COPY resources/merged.txt ./resources/merged.txt
 COPY data/include.txt ./data/include.txt
