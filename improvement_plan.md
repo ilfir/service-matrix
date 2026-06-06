@@ -91,9 +91,14 @@ This document tracks all improvements suggested for the Service Matrix project b
        - All handlers now use cached dictionaries instead of per-request file reads
        - GetFilteredDictionary() method added with exclude filtering and deduplication
 
-- [ ] **Optimize Word Search Algorithm**
-     - Consider using a Trie or prefix tree for dictionary lookup
-     - Precompute letter frequency maps
+- [x] **Optimize Word Search Algorithm**
+       - Replaced O(n²) matrix scan with O(1) letter-to-locations index (Dictionary<char, List<_Loc>>)
+       - Precomputed neighbor arrays for every cell — eliminates per-call List allocation in GetNeighbors()
+       - Replaced string[,] matrix with char[,] for case-insensitive matching (uppercased at construction time)
+       - Replaced HashSet<(int,int)> visited with bool[,] array for O(1) visited checks
+       - Precomputed word as uppercased char[] to avoid per-node ToUpperInvariant calls
+       - Preserved original string[,] matrix output for GetFoundString/GetFoundWord (case-sensitive output)
+       - Added 6 new performance regression tests in WordSearchHelperPerformanceTests.cs
 
 - [ ] **Add Response Pagination**
      - Add pagination to List endpoint for large word lists
@@ -203,7 +208,7 @@ This document tracks all improvements suggested for the Service Matrix project b
 ### Phase 3: Security & Performance (Do Third)
 - [x] ~~Restrict CORS policy~~ (Not needed)
 - [x] ~~Add rate limiting~~ (Not needed)
-- [ ] Optimize word search algorithm
+- [x] Optimize word search algorithm
 - [ ] Add API versioning
 
 ### Phase 4: Testing & Documentation (Do Fourth)
@@ -214,7 +219,7 @@ This document tracks all improvements suggested for the Service Matrix project b
 ## Progress Tracking
 
 - **Total Items**: 35
-- **Completed**: 16
+- **Completed**: 17
 - **In Progress**: 0
 - **Pending**: 18
 

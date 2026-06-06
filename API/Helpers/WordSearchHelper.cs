@@ -5,360 +5,342 @@ using System.Diagnostics;
 namespace service_matrix.Helpers
 {
     /// <summary>
-    /// Optimized word search helper with backtracking and memoization
+    /// Optimized word search helper using precomputed indexes, 
+    /// char-based matrix storage, and array-based visited tracking.
     /// </summary>
-    public class WordSearchHelper
+    public class WordSearchHelper : IWordSearchHelper
     {
-        private readonly string[,] _arLettersStatic;
-        private readonly string[] _arWord;
-        private readonly string _sWord;
-        private readonly int _matrixSize;
-        private readonly HashSet<(int, int)> _visited;
-        private readonly StringBuilder _sFoundString;
-        private readonly Dictionary<string, bool> _memoCache;
-        private readonly List<(int, int)> _currentPath;
-        private readonly List<(int, int)> _bestPath;
-        private readonly int _maxDepth;
+        // Store original cell values for GetFoundString/GetFoundWord output
+        private readonly string[,] _originalMatrix;
+        // Store uppercased chars for fast case-insensitive matching
+        private readonly char[,] _upperMatrix;
+        private readonly int _rows;
+        private readonly int _cols;
+        private readonly char[] _wordUpperChars;
+        private readonly Dictionary<char, List<_Loc>> _letterIndex;
+        private readonly _Loc[][] _precomputedNeighbors;
+        private readonly bool[,] _visited;
+        private readonly List<_Loc> _bestPath;
+        private readonly List<_Loc> _currentPath;
         private readonly int _maxIterations;
-        private int _iterationsCount = 0;
-        private bool _found = false;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
-        private Dictionary<int, Dictionary<string, string>> _foundWord;
+        private int _iterationsCount;
+        private bool _found;
 
-        /// <summary>
-        /// Initialize the word search helper with optimized algorithms
-        /// </summary>
-        /// <param name="sWord2">The word to search for</param>
-        /// <param name="arLetters2">The letter matrix</param>
-        public WordSearchHelper(string sWord2, string[,] arLetters2)
-        {
-            _arLettersStatic = CopyArray(arLetters2);
-            _arWord = sWord2.ToCharArray().Select(c => c.ToString()).ToArray();
-            _sWord = sWord2;
-            _matrixSize = arLetters2.GetLength(0);
-            _visited = new HashSet<(int, int)>();
-            _sFoundString = new StringBuilder();
-            _memoCache = new Dictionary<string, bool>();
-            _currentPath = new List<(int, int)>();
-            _bestPath = new List<(int, int)>();
-            _maxDepth = _arWord.Length;
-            _maxIterations = _matrixSize * _matrixSize * 10; // Limit iterations
-            _stopwatch.Start();
-        }
-        
-        /// <summary>
-        /// Find all locations of the first letter in the matrix
-        /// </summary>
-        /// <returns>List of coordinates where the first letter appears</returns>
+        private struct _Loc
+          {
+             public readonly int Row;
+             public readonly int Col;
+             public _Loc(int row, int col) { Row = row; Col = col; }
+          }
+
+           /// <summary>
+           /// Initialize the word search helper with optimized algorithms.
+           /// </summary>
+           /// <param name="word">The word to search for.</param>
+           /// <param name="lettersMatrix">The letter matrix.</param>
+        public WordSearchHelper(string word, string[,] lettersMatrix)
+           {
+               _rows = lettersMatrix.GetLength(0);
+               _cols = lettersMatrix.GetLength(1);
+               _originalMatrix = new string[_rows, _cols];
+               _upperMatrix = new char[_rows, _cols];
+
+               // Build uppercased matrix and letter index in a single pass
+               _letterIndex = new Dictionary<char, List<_Loc>>(26);
+            for (int i = 0; i < _rows; i++)
+               {
+                for (int j = 0; j < _cols; j++)
+                   {
+                    var cell = lettersMatrix[i, j];
+                       _originalMatrix[i, j] = cell;
+                       _upperMatrix[i, j] = string.IsNullOrEmpty(cell) ? '\0' : char.ToUpperInvariant(cell[0]);
+
+                    if (!string.IsNullOrEmpty(cell))
+                       {
+                        var upperChar = char.ToUpperInvariant(cell[0]);
+                        if (!_letterIndex.TryGetValue(upperChar, out var list))
+                           {
+                            list = new List<_Loc>();
+                               _letterIndex[upperChar] = list;
+                           }
+                        list.Add(new _Loc(i, j));
+                       }
+                   }
+               }
+
+               // Store word as uppercased char array for fast matching
+               _wordUpperChars = word.ToUpperInvariant().ToCharArray();
+
+               // Precompute neighbors for every cell to eliminate per-call allocations
+            int totalCells = _rows * _cols;
+               _precomputedNeighbors = new _Loc[totalCells][];
+            for (int i = 0; i < _rows; i++)
+               {
+                for (int j = 0; j < _cols; j++)
+                   {
+                    var neighbors = new List<_Loc>();
+                    for (int dRow = -1; dRow <= 1; dRow++)
+                       {
+                        for (int dCol = -1; dCol <= 1; dCol++)
+                           {
+                            if (dRow == 0 && dCol == 0) continue;
+                            int newRow = i + dRow;
+                            int newCol = j + dCol;
+                            if (newRow >= 0 && newRow < _rows && newCol >= 0 && newCol < _cols)
+                               {
+                                neighbors.Add(new _Loc(newRow, newCol));
+                               }
+                           }
+                       }
+                       _precomputedNeighbors[i * _cols + j] = neighbors.ToArray();
+                   }
+               }
+
+               // Use bool array for visited tracking (faster than HashSet)
+               _visited = new bool[_rows, _cols];
+               _bestPath = new List<_Loc>();
+               _currentPath = new List<_Loc>();
+               _maxIterations = _rows * _cols * (_wordUpperChars.Length + 1) * 5;
+           }
+
+           /// <summary>
+           /// Find all locations of the first letter in the matrix using the precomputed index.
+           /// </summary>
+           /// <returns>List of coordinates where the first letter appears.</returns>
         public List<(int, int)> FindLetterLocations()
-        {
-            string firstLetter = _arWord[0];
-            var locations = new List<(int, int)>();
-            
-            for (int i = 0; i < _matrixSize; i++)
-            {
-                for (int j = 0; j < _matrixSize; j++)
-                {
-                    if (string.Equals(_arLettersStatic[i, j], firstLetter, StringComparison.OrdinalIgnoreCase))
-                    {
-                        locations.Add((i, j));
-                    }
-                }
-            }
-            return locations;
-        }
-        
-        /// <summary>
-        /// Optimized search using backtracking algorithm
-        /// </summary>
-        /// <returns>True if word is found, false otherwise</returns>
+           {
+            if (_wordUpperChars.Length == 0) return new List<(int, int)>();
+
+            var firstChar = _wordUpperChars[0];
+            if (_letterIndex.TryGetValue(firstChar, out var locations))
+               {
+                return locations.ConvertAll(p => (p.Row, p.Col));
+               }
+            return new List<(int, int)>();
+           }
+
+           /// <summary>
+           /// Optimized search using precomputed indexes and array-based backtracking.
+           /// </summary>
+           /// <returns>True if word is found, false otherwise.</returns>
         public bool Search()
-        {
-            _iterationsCount = 0;
-            _found = false;
-            _bestPath.Clear();
-            _currentPath.Clear();
-            _memoCache.Clear();
-            _visited.Clear();
-            
+           {
+               _iterationsCount = 0;
+               _found = false;
+               _bestPath.Clear();
+               _currentPath.Clear();
+            Array.Clear(_visited, 0, _visited.Length);
+
+            if (_wordUpperChars.Length == 0) return false;
+
             var startPositions = FindLetterLocations();
 
-            foreach (var startPosition in startPositions)
-            {
+            foreach (var pos in startPositions)
+               {
                 if (_found) break;
-                
-                _currentPath.Add(startPosition);
-                _visited.Add(startPosition);
-                _sFoundString.Append(_arLettersStatic[startPosition.Item1, startPosition.Item2]);
-                
-                if (BacktrackSearch(1, startPosition.Item1, startPosition.Item2))
-                {
-                    _found = true;
-                    _bestPath.AddRange(_currentPath);
-                    break;
-                }
-                
-                _currentPath.RemoveAt(_currentPath.Count - 1);
-                _visited.Remove(startPosition);
-                _sFoundString.Clear();
-            }
-            
-            _stopwatch.Stop();
-            return _found;
-        }
 
-        /// <summary>
-        /// Get the word locations found during search
-        /// </summary>
-        /// <returns>Dictionary mapping word indices to their matrix coordinates</returns>
+                   _currentPath.Add(new _Loc(pos.Item1, pos.Item2));
+                   _visited[pos.Item1, pos.Item2] = true;
+
+                if (BacktrackSearch(1, pos.Item1, pos.Item2))
+                   {
+                       _found = true;
+                       _bestPath.AddRange(_currentPath);
+                    break;
+                   }
+
+                   _currentPath.RemoveAt(_currentPath.Count - 1);
+                   _visited[pos.Item1, pos.Item2] = false;
+               }
+
+            return _found;
+           }
+
+           /// <summary>
+           /// Get the word locations found during search.
+           /// </summary>
+           /// <returns>Dictionary mapping word indices to their matrix coordinates.</returns>
         public Dictionary<int, Dictionary<string, string>> GetFoundWord()
-        {
+           {
             var result = new Dictionary<int, Dictionary<string, string>>();
             foreach (var position in _bestPath)
-            {
+               {
                 int index = _bestPath.IndexOf(position);
-                string charAtPos = _arLettersStatic[position.Item1, position.Item2];
-                result[index] = new Dictionary<string, string> { { charAtPos, $"{position.Item1} {position.Item2}" } };
-            }
+                string charStr = _originalMatrix[position.Row, position.Col] ?? "";
+                result[index] = new Dictionary<string, string> { { charStr, $"{position.Row} {position.Col}" } };
+               }
             return result;
-        }
+           }
 
-        /// <summary>
-        /// Get the string formed by the search path
-        /// </summary>
-        /// <returns>The concatenated string from the search path</returns>
+           /// <summary>
+           /// Get the string formed by the search path.
+           /// </summary>
+           /// <returns>The concatenated string from the search path.</returns>
         public string GetFoundString()
-        {
-            var result = new StringBuilder();
+           {
+            if (_bestPath.Count == 0) return string.Empty;
+
+            var sb = new StringBuilder(_bestPath.Count);
             foreach (var position in _bestPath)
-            {
-                result.Append(_arLettersStatic[position.Item1, position.Item2]);
-            }
-            return result.ToString();
-        }
-        
-        /// <summary>
-        /// Optimized backtracking search with memoization
-        /// </summary>
-        /// <param name="currentIndex">Current position in the word being searched</param>
-        /// <param name="currentRow">Current row in the matrix</param>
-        /// <param name="currentCol">Current column in the matrix</param>
-        /// <returns>True if word is found from this position</returns>
-        private bool BacktrackSearch(int currentIndex, int currentRow, int currentCol)
-        {
-            _iterationsCount++;
+               {
+                string cell = _originalMatrix[position.Row, position.Col];
+                if (!string.IsNullOrEmpty(cell))
+                    sb.Append(cell);
+               }
+            return sb.ToString();
+           }
+
+           /// <summary>
+           /// Optimized backtracking search using precomputed neighbors and char matrix.
+           /// </summary>
+        private bool BacktrackSearch(int currentIndex, int row, int col)
+           {
+               _iterationsCount++;
             if (_iterationsCount > _maxIterations)
-            {
                 return false;
-            }
-            
-            if (currentIndex == _arWord.Length)
-            {
+
+            if (currentIndex >= _wordUpperChars.Length)
                 return true;
-            }
-            
-            string targetChar = _arWord[currentIndex];
-            
-            var neighbors = GetNeighbors(currentRow, currentCol);
-            
-            foreach (var neighbor in neighbors)
-            {
-                if (_visited.Contains(neighbor))
-                {
+
+            char targetChar = _wordUpperChars[currentIndex];
+            var neighbors = _precomputedNeighbors[row * _cols + col];
+
+            for (int i = 0; i < neighbors.Length; i++)
+               {
+                var neighbor = neighbors[i];
+
+                if (_visited[neighbor.Row, neighbor.Col])
                     continue;
-                }
-                
-                string cellValue = _arLettersStatic[neighbor.Item1, neighbor.Item2];
-                if (!string.Equals(cellValue, targetChar, StringComparison.OrdinalIgnoreCase))
-                {
+
+                if (_upperMatrix[neighbor.Row, neighbor.Col] != targetChar)
                     continue;
-                }
-                
-                var cacheKey = $"{currentIndex}-{neighbor.Item1}-{neighbor.Item2}";
-                if (_memoCache.ContainsKey(cacheKey))
-                {
-                    continue;
-                }
-                
-                _visited.Add(neighbor);
-                _currentPath.Add(neighbor);
-                _sFoundString.Append(cellValue);
-                
-                if (BacktrackSearch(currentIndex + 1, neighbor.Item1, neighbor.Item2))
-                {
+
+                   _visited[neighbor.Row, neighbor.Col] = true;
+                   _currentPath.Add(neighbor);
+
+                if (BacktrackSearch(currentIndex + 1, neighbor.Row, neighbor.Col))
                     return true;
-                }
-                
-                _visited.Remove(neighbor);
-                _currentPath.RemoveAt(_currentPath.Count - 1);
-                _sFoundString.Length -= 1;
-                _memoCache[cacheKey] = false;
-            }
-            
+
+                   _currentPath.RemoveAt(_currentPath.Count - 1);
+                   _visited[neighbor.Row, neighbor.Col] = false;
+               }
+
             return false;
-        }
+           }
 
-        /// <summary>
-        /// Get neighboring cells in the matrix (diagonal and orthogonal)
-        /// </summary>
-        /// <param name="row">Current row</param>
-        /// <param name="col">Current column</param>
-        /// <returns>List of neighbor coordinates</returns>
-        private List<(int, int)> GetNeighbors(int row, int col)
-        {
-            var neighbors = new List<(int, int)>();
-            
-            for (int dRow = -1; dRow <= 1; dRow++)
-            {
-                for (int dCol = -1; dCol <= 1; dCol++)
-                {
-                    if (dRow == 0 && dCol == 0)
-                    {
-                        continue;
-                    }
-                    
-                    int newRow = row + dRow;
-                    int newCol = col + dCol;
-                    
-                    if (newRow >= 0 && newRow < _matrixSize && newCol >= 0 && newCol < _matrixSize)
-                    {
-                        neighbors.Add((newRow, newCol));
-                    }
-                }
-            }
-            
-            return neighbors;
-        }
-
-        /// <summary>
-        /// Create a deep copy of the letter matrix
-        /// </summary>
-        /// <param name="source">The source matrix to copy</param>
-        /// <returns>A new matrix with the same values</returns>
+           /// <summary>
+           /// Create a deep copy of the letter matrix.
+           /// </summary>
+           /// <param name="source">The source matrix to copy.</param>
+           /// <returns>A new matrix with the same values.</returns>
         public static string[,] CopyArray(string[,] source)
-        {
+           {
             int rows = source.GetLength(0);
             int cols = source.GetLength(1);
             string[,] copy = new string[rows, cols];
-            
+
             for (int i = 0; i < rows; i++)
-            {
+               {
                 for (int j = 0; j < cols; j++)
-                {
+                   {
                     copy[i, j] = source[i, j];
-                }
-            }
+                   }
+               }
             return copy;
-        }
+           }
 
-
-
-        /// <summary>
-        /// Check if a character exists at the given position in the matrix
-        /// </summary>
-        /// <param name="row">Row index</param>
-        /// <param name="col">Column index</param>
-        /// <param name="character">Character to check</param>
-        /// <returns>True if character matches</returns>
+           /// <summary>
+           /// Check if a character exists at the given position in the matrix.
+           /// </summary>
         private bool HasCharacterAt(int row, int col, string character)
-        {
-            if (row < 0 || row >= _matrixSize || col < 0 || col >= _matrixSize)
-            {
+           {
+            if (row < 0 || row >= _rows || col < 0 || col >= _cols)
                 return false;
-            }
-            return string.Equals(_arLettersStatic[row, col], character, StringComparison.OrdinalIgnoreCase);
-        }
+            var cell = _originalMatrix[row, col];
+            return string.Equals(cell, character, StringComparison.OrdinalIgnoreCase);
+           }
 
-        /// <summary>
-        /// Check if the next letter in the word is a neighbor of the current position
-        /// </summary>
-        /// <param name="iCurrentX">Current row position</param>
-        /// <param name="iCurrentY">Current column position</param>
-        /// <param name="arWord2">The word being searched</param>
-        /// <param name="iWordIndex">Current index in the word</param>
-        /// <param name="arLettersLoc">The letter matrix</param>
-        /// <returns>True if the next letter is a neighbor</returns>
+           /// <summary>
+           /// Check if the next letter in the word is a neighbor of the current position.
+           /// </summary>
         public bool IsNeighborToNextLetter(int iCurrentX, int iCurrentY, string[] arWord2, int iWordIndex, string[,] arLettersLoc)
-        {
+           {
             if (iWordIndex == arWord2.Length - 1 || iWordIndex == 0)
-            {
                 return true;
-            }
+
             string sNextLetter = arWord2[iWordIndex + 1];
             for (int dX = 1; dX <= 3; dX++)
-            {
+               {
                 for (int dY = 1; dY <= 3; dY++)
-                {
+                   {
                     int neighborX = (iCurrentX + dX) - 2;
                     int neighborY = (iCurrentY + dY) - 2;
-                    if (!(neighborX == iCurrentX && neighborY == iCurrentY) && neighborX >= 0 && neighborX <= 4 && neighborY >= 0 && neighborY <= 4 && sNextLetter.Equals(arLettersLoc[neighborX, neighborY]))
-                    {
+                    if (!(neighborX == iCurrentX && neighborY == iCurrentY)
+                           && neighborX >= 0 && neighborX <= 4
+                           && neighborY >= 0 && neighborY <= 4
+                           && sNextLetter.Equals(arLettersLoc[neighborX, neighborY]))
+                       {
                         bool secondNextNeighbor = true;
                         if (arWord2.Length > iWordIndex + 2)
-                        {
+                           {
                             string[,] arLettersLocTemp = CopyArray(arLettersLoc);
                             arLettersLocTemp[iCurrentX, iCurrentY] = "*";
                             secondNextNeighbor = IsNeighborToNextLetter(neighborX, neighborY, arWord2, iWordIndex + 1, arLettersLocTemp);
-                        }
+                           }
                         if (secondNextNeighbor)
-                        {
+                           {
                             return true;
-                        }
-                    }
-                }
-            }
+                           }
+                       }
+                   }
+               }
             return false;
-        }
+           }
 
-        /// <summary>
-        /// Get the current search path
-        /// </summary>
-        /// <returns>List of coordinates in the current search path</returns>
+           /// <summary>
+           /// Get the current search path.
+           /// </summary>
+           /// <returns>List of coordinates in the current search path.</returns>
         public List<(int, int)> GetCurrentPath()
-        {
-            return new List<(int, int)>(_currentPath);
-        }
-        
-        /// <summary>
-        /// Determine whether all letter of the given word are in the matrix
-        /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="wholeWord"></param>
-        /// <returns></returns>
-        public static bool IsAllLettersInMatrix(String[,] matrix, String wholeWord) {
-            var _allArrayLetters = new HashSet<char>();
-            for (int i = 0; i < matrix.GetLength(0); i++)
-            {
-                for (int j = 0; j < matrix.GetLength(1); j++)
-                {
-                    var charArray = matrix[i, j].ToCharArray();
-                    if(charArray.Length > 0)
-                        _allArrayLetters.Add(charArray[0]);
-                    else
-                        _allArrayLetters.Add('*');
-                }
-            }
-            
-            foreach (var c in wholeWord)
-            {
-                if (!_allArrayLetters.Contains(c)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+           {
+            return _currentPath.ConvertAll(p => (p.Row, p.Col));
+           }
 
-        /// <summary>
-        /// Clean words by filtering and sorting
-        /// </summary>
-        /// <param name="input">Collection of words to clean</param>
-        /// <returns>Filtered and sorted list of words</returns>
+           /// <summary>
+           /// Determine whether all letters of the given word are in the matrix.
+           /// </summary>
+        public static bool IsAllLettersInMatrix(String[,] matrix, String wholeWord)
+           {
+            var allArrayLetters = new HashSet<char>();
+            for (int i = 0; i < matrix.GetLength(0); i++)
+               {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                   {
+                    var charArray = matrix[i, j].ToCharArray();
+                    if (charArray.Length > 0)
+                        allArrayLetters.Add(charArray[0]);
+                    else
+                        allArrayLetters.Add('*');
+                   }
+               }
+
+            foreach (var c in wholeWord)
+               {
+                if (!allArrayLetters.Contains(c))
+                    return false;
+               }
+            return true;
+           }
+
+           /// <summary>
+           /// Clean words by filtering and sorting.
+           /// </summary>
         public static IEnumerable<string> CleanWords(IEnumerable<string> input)
-        {
+           {
             return input
-                .Where(word => word.Length >= 8 && word.Length <= 24 && !word.Contains(' ') && !word.Contains('-'))
-                .OrderByDescending(word => word.Length)
-                .ToList();
-        }
+                  .Where(word => word.Length >= 8 && word.Length <= 24 && !word.Contains(' ') && !word.Contains('-'))
+                  .OrderByDescending(word => word.Length)
+                   .ToList();
+           }
     }
 }
