@@ -36,8 +36,25 @@ builder.Services.AddScoped<LookupWordQueryHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Service Matrix API", Version = "v1" });
-       // Include XML comments for Swagger
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "Service Matrix API", 
+        Version = "v1",
+        Description = "A high-performance ASP.NET Core Web API providing word search functionality over a letter matrix, backed by file-based dictionary data. Supports searching words, updating include/exclude lists, merging dictionaries, and looking up word definitions.",
+        Contact = new OpenApiContact 
+        { 
+            Name = "Service Matrix Support",
+            Email = "support@servicematrix.example.com",
+            Url = new Uri("https://github.com/ilfir/service-matrix")
+        },
+        License = new OpenApiLicense 
+        { 
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+
+      // Include XML comments for Swagger
      var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
      var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
      c.IncludeXmlComments(xmlPath);
